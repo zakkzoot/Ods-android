@@ -7,6 +7,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
 private val Context.dataStore by preferencesDataStore(name = "ods_status_cache")
@@ -18,6 +19,7 @@ private val Context.dataStore by preferencesDataStore(name = "ods_status_cache")
 class StatusStore(private val context: Context) {
     private val key = stringPreferencesKey("status_json")
     private val json = Json { ignoreUnknownKeys = true }
+    private val listSerializer = ListSerializer(ConnectionStatus.serializer())
 
     val statuses: Flow<Map<String, ConnectionStatus>> = context.dataStore.data.map { prefs ->
         prefs[key]?.let { decode(it) } ?: emptyMap()
@@ -29,10 +31,10 @@ class StatusStore(private val context: Context) {
     }
 
     suspend fun save(map: Map<String, ConnectionStatus>) {
-        context.dataStore.edit { it[key] = json.encodeToString(map.values.toList()) }
+        context.dataStore.edit { it[key] = json.encodeToString(listSerializer, map.values.toList()) }
     }
 
     private fun decode(s: String): Map<String, ConnectionStatus> = runCatching {
-        json.decodeFromString<List<ConnectionStatus>>(s).associateBy { it.id }
+        json.decodeFromString(listSerializer, s).associateBy { it.id }
     }.getOrDefault(emptyMap())
 }

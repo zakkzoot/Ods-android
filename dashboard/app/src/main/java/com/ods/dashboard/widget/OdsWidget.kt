@@ -1,6 +1,7 @@
 package com.ods.dashboard.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -48,11 +49,11 @@ class OdsWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val statuses = StatusStore(context).snapshot()
-        provideContent { WidgetBody(statuses) }
+        provideContent { WidgetBody(context, statuses) }
     }
 
     @Composable
-    private fun WidgetBody(statuses: Map<String, ConnectionStatus>) {
+    private fun WidgetBody(context: Context, statuses: Map<String, ConnectionStatus>) {
         Column(
             modifier = GlanceModifier.fillMaxSize().background(OdsColors.Charcoal).padding(10.dp),
         ) {
@@ -66,19 +67,19 @@ class OdsWidget : GlanceAppWidget() {
                 modifier = GlanceModifier.fillMaxSize(),
             ) {
                 items(Connections.all, itemId = { it.id.hashCode().toLong() }) { c ->
-                    WidgetTile(c, statuses[c.id])
+                    WidgetTile(context, c, statuses[c.id])
                 }
             }
         }
     }
 
     @Composable
-    private fun WidgetTile(c: Connection, status: ConnectionStatus?) {
+    private fun WidgetTile(context: Context, c: Connection, status: ConnectionStatus?) {
         val params: ActionParameters = actionParametersOf(focusKey to c.id)
         Column(
             modifier = GlanceModifier
                 .padding(4.dp)
-                .clickable(actionStartActivity<MainActivity>(params)),
+                .clickable(actionStartActivity(Intent(context, MainActivity::class.java), params)),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
