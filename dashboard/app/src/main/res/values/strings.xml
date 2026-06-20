@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ODS Dashboard</string>
+    <string name="widget_label">ODS Connections</string>
+    <string name="widget_description">Live status of every ODS connection — socials, systems and accounts.</string>
+</resources>

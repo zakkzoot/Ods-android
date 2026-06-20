@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose drives the in-app look; this base theme keeps the system surfaces dark. -->
+    <style name="Theme.OdsDashboard" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/charcoal</item>
+        <item name="android:navigationBarColor">@color/charcoal</item>
+        <item name="android:windowBackground">@color/charcoal</item>
+    </style>
+</resources>

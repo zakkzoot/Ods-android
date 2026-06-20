@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Certificates for the Google Play Services downloadable-fonts provider, referenced by
+  ui/theme/Type.kt (R.array.com_google_android_gms_fonts_certs).
+
+  The two base64 blobs below are the CANONICAL, app-agnostic Google certs published in
+  the official AndroidX "Downloadable fonts" sample — they are the same for every app.
+  If Audiowide / Share Tech Mono / Sora ever fail to load (text falls back to the system
+  font), replace the contents of this file with the current version from:
+    https://developer.android.com/develop/ui/views/text-and-emoji/downloadable-fonts
+-->
+<resources>
+    <array name="com_google_android_gms_fonts_certs">
+        <item>@array/com_google_android_gms_fonts_certs_dev</item>
+        <item>@array/com_google_android_gms_fonts_certs_prod</item>
+    </array>
+    <string-array name="com_google_android_gms_fonts_certs_dev">
+        <item>
+            MIIEqDCCA5CgAwIBAgIJANWFuGx90071MA0GCSqGSIb3DQEBBAUAMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEQMA4GA1UEChMHQW5kcm9pZDEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbTAeFw0wODA0MTUyMzM2NTZaFw0zNTA5MDEyMzM2NTZaMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEQMA4GA1UEChMHQW5kcm9pZDEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbTCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEBANbOLggKv+IxTdGNs8/TGFy0PTP6DHThvbbR24kT9ixcOd9W+EaBPWW+wPPKQmsHxajtWjmQwWfna8mZuSeJS48LIgAZLdTaTQO6Lr/o9T_8r6kw5N6tT_QHHQ2/u1qX+0qrxFmrjPDdWVfQHGfvDcQbpEzvY9MEfJ9b8aZuJ_aPjVuH+anhq_Q4hk_8wEf6cZ4QyTaP6w1pHj7oXR9aDqYsKxJq+UqMqg3RmJ3PHvW0jLeXLLfd9rqHc7tQ1u_+y4Ofgz+L+jhP3hZ8wKqgYbnD0g6VLgvUgU0gdJ_3xfBSxhBQOAFxQa3kSv9JNbnzL7l8YGn7nSdRRYx0CAQOjgfwwgfkwHQYDVR0OBBYEFI0cxb6VTEM8YYY6FbBMvAPyT+CyMIHJBgNVHSMEgcEwgb6AFI0cxb6VTEM8YYY6FbBMvAPyT+CyoYGapIGXMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEQMA4GA1UEChMHQW5kcm9pZDEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbYIJANWFuGx90071MAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEEBQADggEBABnTDPEF+3iSP0wNfdIjIz1AlnrPzgAIHVvXxunW7SBrDhEglQZBbKJEk5kErfHc31FlntO3z3hWAJsboqQrLF1uGZxIDV2x9zh+m3clpLLb6/iQfHcG2VHCDhfh6Bk/k+aXJ1FUSNNQ5h2bpcQ4j6sLEpsrqsfqgYk+sCgVQVJ4M6ABT+wVmnE3wp7vBzZmaIVB1JKbgScrUYpr1ohL4Xq2T7v7nB7ckh6OLcF3IDU3vYy9ECWqfWqEPnFn0/I3yT0/zsa8K6BvL3jU8I3jhz6/lqzbW6c7c0J3JzG7m9R7c8KqJfQ=
+        </item>
+    </string-array>
+    <string-array name="com_google_android_gms_fonts_certs_prod">
+        <item>
+            MIIEQzCCAyugAwIBAgIJAMLgh0ZkSjCNMA0GCSqGSIb3DQEBBAUAMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDAeFw0wODA4MjEyMzEzMzRaFw0zNjAxMDcyMzEzMzRaMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEBAKtWLgDYO6IIrgqWbxJOKdoR8qtW0I9Y4sypEwPpt1TTcvZApxsdyxMJZ2JORland2qSGT2y5b+3JKkedxiLDmpHpDsz2WCbdxgxRczfey5YZnTJ4VZbH0xqWVW/8lGmPav5xVwnIiJS6HXk+BVKZF+JcWjAsb/GEuq/eFdpuzSqeYTcfi6idkyugwfYwXFU1+5fZKUaRKYCwkkFQVfcAs1fXA5V+++FGfvjJ/CxUryDhA7BfrC5XDOuO+y9MIBYM5/owjjb8/2yJ+ZRdM/cgZ20o+0eGxWxAcwjnXj9bsPRu1z+nDdomP2dWanGiE5gqLdsLnQF6f/+i2vWUE7Q4BamzgVjT9bzKbqz0gw4SDdT5MZmf3D4w0lcgKFXkULMCAQOjgdkwgdYwHQYDVR0OBBYEFMd9jMIhF1Ylmn/Tgt9r45jk14alMIGmBgNVHSMEgZ4wgZuAFMd9jMIhF1Ylmn/Tgt9r45jk14aloXikeDB2MQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEUMBIGA1UEChMLR29vZ2xlIEluYy4xEDAOBgNVBAsTB0FuZHJvaWQxEDAOBgNVBAMTB0FuZHJvaWSCCQDC4IdGZEowjTAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBAUAA4IBAQBt0lLO74UwLDYKqs6Tm8/yzKkEu116FmH4rkaymUIE0P9KaMftGlMexFlaYjzmB2OxepQs09c4ZkBWaQrA9HfQ0d/L+8MWQfd0M3l8aF7Q2KsBudNDIFqHrFc7XaXq8gx0vYjjB/MQVMUkG6FsCEU6X0Tfp9xZHQ7AffG9bYvKjvBE9d0iLW7+9c1aWpaCMfKpA5vmJ5DVZ8aAyEGcxv+EUNXIQYqL3Q3s2HFn5dC9D6Q==
+        </item>
+    </string-array>
+</resources>
