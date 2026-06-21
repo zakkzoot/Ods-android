@@ -74,10 +74,13 @@ object Connections {
         Connection("github", "GitHub @zakkzoot", "GH", Band.ACCOUNTS, CheckType.GITHUB,
             url = "https://github.com/zakkzoot"),
         // info@outlined-design.com is NOT a Google account — it's the business mailbox on
-        // the outlined-design.com domain. It deep-links via mailto only (no Gmail OAuth /
-        // unread count). To light up a live count later, add its real provider (e.g. IMAP).
+        // cPanel (host s1308.sgp1.mysecurecloudhost.com, IMAP/POP/SMTP). The tile opens
+        // its webmail inbox (no Gmail OAuth / unread count). To light up a live count
+        // later, add an IMAP check against that host with stored credentials.
+        // Fallback inbox URL if the webmail subdomain isn't set up:
+        // https://s1308.sgp1.mysecurecloudhost.com:2096
         Connection("email_ods", "info@outlined-design.com", "@O", Band.ACCOUNTS, CheckType.LINK_ONLY,
-            url = "mailto:info@outlined-design.com"),
+            url = "https://webmail.outlined-design.com"),
         // The personal Google account — the only Gmail-checked inbox.
         Connection("email_gmail", "zakkgray1@gmail.com", "@G", Band.ACCOUNTS, CheckType.GMAIL,
             url = "mailto:zakkgray1@gmail.com"),
