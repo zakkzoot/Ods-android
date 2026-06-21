@@ -11,6 +11,7 @@ import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.ResponseTypeValues
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
@@ -21,6 +22,9 @@ import kotlin.coroutines.resume
  * in [SecureConfig]; the granted AuthState (incl. refresh token) is persisted per
  * connection id. See SETUP_GOOGLE_OAUTH.md for the one-time Google Cloud setup.
  */
+/** Unread count + a few recent message lines ("From — Subject") for a mailbox. */
+data class MailSummary(val unread: Int, val subjects: List<String>)
+
 object GmailAuth {
 
     private const val REDIRECT_URI = "com.ods.dashboard:/oauth2redirect"
@@ -72,8 +76,17 @@ object GmailAuth {
     fun disconnect(config: SecureConfig, connectionId: String) =
         config.set(SecureConfig.gmailStateKey(connectionId), null)
 
-    /** Unread count for an account's inbox, or null if not connected / unavailable. */
-    suspend fun unreadCount(context: Context, config: SecureConfig, connectionId: String): Int? {
+    /** Unread inbox count + recent unread subjects for an account, or null if unavailable. */
+    suspend fun unreadCount(context: Context, config: SecureConfig, connectionId: String): Int? =
+        inboxSummary(context, config, connectionId)?.unread
+
+    /** Count of unread inbox messages plus a few recent subjects for the collective inbox. */
+    suspend fun inboxSummary(
+        context: Context,
+        config: SecureConfig,
+        connectionId: String,
+        limit: Int = 5,
+    ): MailSummary? {
         val raw = config.get(SecureConfig.gmailStateKey(connectionId)) ?: return null
         val state = runCatching { AuthState.jsonDeserialize(raw) }.getOrNull() ?: return null
         val service = AuthorizationService(context)
@@ -81,15 +94,50 @@ object GmailAuth {
             val token = freshToken(service, state) ?: return null
             // Persist any refreshed token material.
             config.set(SecureConfig.gmailStateKey(connectionId), state.jsonSerializeString())
-            val req = Request.Builder()
-                .url("https://gmail.googleapis.com/gmail/v1/users/me/labels/INBOX")
-                .header("Authorization", "Bearer $token")
-                .build()
-            http.newCall(req).execute().use { resp ->
+
+            val unread = http.newCall(
+                Request.Builder()
+                    .url("https://gmail.googleapis.com/gmail/v1/users/me/labels/INBOX")
+                    .header("Authorization", "Bearer $token").build(),
+            ).execute().use { resp ->
                 if (resp.code !in 200..299) return null
-                val body = resp.body?.string().orEmpty()
-                return JSONObject(body).optInt("messagesUnread", 0)
+                JSONObject(resp.body?.string().orEmpty()).optInt("messagesUnread", 0)
             }
+
+            val ids = runCatching {
+                http.newCall(
+                    Request.Builder()
+                        .url("https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread+in:inbox&maxResults=$limit")
+                        .header("Authorization", "Bearer $token").build(),
+                ).execute().use { resp ->
+                    val arr = JSONObject(resp.body?.string().orEmpty()).optJSONArray("messages") ?: JSONArray()
+                    (0 until arr.length()).mapNotNull { arr.optJSONObject(it)?.optString("id") }
+                }
+            }.getOrDefault(emptyList())
+
+            val subjects = ids.mapNotNull { id ->
+                runCatching {
+                    http.newCall(
+                        Request.Builder()
+                            .url("https://gmail.googleapis.com/gmail/v1/users/me/messages/$id?format=metadata&metadataHeaders=Subject&metadataHeaders=From")
+                            .header("Authorization", "Bearer $token").build(),
+                    ).execute().use { resp ->
+                        val headers = JSONObject(resp.body?.string().orEmpty())
+                            .optJSONObject("payload")?.optJSONArray("headers") ?: return@use null
+                        var subject: String? = null
+                        var from: String? = null
+                        for (i in 0 until headers.length()) {
+                            val h = headers.optJSONObject(i) ?: continue
+                            when (h.optString("name")) {
+                                "Subject" -> subject = h.optString("value")
+                                "From" -> from = h.optString("value").substringBefore("<").trim().ifBlank { h.optString("value") }
+                            }
+                        }
+                        listOfNotNull(from, subject).filter { it.isNotBlank() }.joinToString(" — ").ifBlank { null }
+                    }
+                }.getOrNull()
+            }
+            return MailSummary(unread, subjects)
         } finally {
             service.dispose()
         }

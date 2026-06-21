@@ -11,8 +11,10 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Properties
 import java.util.concurrent.TimeUnit
+import javax.mail.Flags
 import javax.mail.Folder
 import javax.mail.Session
+import javax.mail.search.FlagTerm
 
 /**
  * Resolves the live status of one connection. All work runs on IO. Failures degrade
@@ -131,10 +133,24 @@ class StatusProvider(
                     if (line.isNotBlank()) add(line)
                 }
             }
+            val reviews = runCatching {
+                val r = Request.Builder()
+                    .url("https://api.github.com/search/issues?q=is:open+is:pr+review-requested:@me&per_page=1")
+                    .header("Authorization", "Bearer $pat")
+                    .header("Accept", "application/vnd.github+json").build()
+                http.newCall(r).execute().use { rr ->
+                    JSONObject(rr.body?.string().orEmpty()).optInt("total_count", 0)
+                }
+            }.getOrDefault(0)
+            val figures = buildList {
+                add(Figure("unread", count.toString()))
+                if (reviews > 0) add(Figure("PRs to review", reviews.toString()))
+                add(Figure("api", resp.code.toString()))
+            }
             return ConnectionStatus(
                 c.id, if (resp.code in 200..399) Health.UP else Health.DOWN,
-                badge = count, checkedAtMs = now(),
-                figures = listOf(Figure("unread", count.toString()), Figure("api", resp.code.toString())),
+                badge = count + reviews, checkedAtMs = now(),
+                figures = figures,
                 items = items,
             )
         }
@@ -165,18 +181,19 @@ class StatusProvider(
         return ConnectionStatus(c.id, Health.UP, checkedAtMs = now(), figures = listOf(Figure("bot", "ok")))
     }
 
-    // ---- Gmail: unread inbox count via OAuth (per account) ----
+    // ---- Gmail: unread inbox count + recent subjects via OAuth (per account) ----
     private suspend fun gmail(c: Connection): ConnectionStatus {
         if (!GmailAuth.isConfigured(config)) return unconfigured(c, "add Google client ID in Settings")
         if (!GmailAuth.isConnected(config, c.id)) return unconfigured(c, "connect this account in Settings")
-        val count = GmailAuth.unreadCount(context, config, c.id)
+        val summary = GmailAuth.inboxSummary(context, config, c.id)
             ?: return ConnectionStatus(
                 c.id, Health.DEGRADED, checkedAtMs = now(),
                 figures = listOf(Figure("gmail", "reauth needed")),
             )
         return ConnectionStatus(
-            c.id, Health.UP, badge = count, checkedAtMs = now(),
-            figures = listOf(Figure("unread", count.toString())),
+            c.id, Health.UP, badge = summary.unread, checkedAtMs = now(),
+            figures = listOf(Figure("unread", summary.unread.toString())),
+            items = summary.subjects,
         )
     }
 
@@ -200,10 +217,21 @@ class StatusProvider(
             inbox.open(Folder.READ_ONLY)
             val unread = inbox.unreadMessageCount.coerceAtLeast(0)
             val total = inbox.messageCount.coerceAtLeast(0)
+            val subjects = runCatching {
+                inbox.search(FlagTerm(Flags(Flags.Flag.SEEN), false))
+                    .takeLast(5).asReversed().mapNotNull { m ->
+                        val subj = runCatching { m.subject }.getOrNull()
+                        val from = runCatching {
+                            m.from?.firstOrNull()?.toString()?.substringBefore("<")?.trim()
+                        }.getOrNull()
+                        listOfNotNull(from, subj).filter { it.isNotBlank() }.joinToString(" — ").ifBlank { null }
+                    }
+            }.getOrDefault(emptyList())
             inbox.close(false)
             ConnectionStatus(
                 c.id, Health.UP, badge = unread, checkedAtMs = now(),
                 figures = listOf(Figure("unread", unread.toString()), Figure("total", total.toString())),
+                items = subjects,
             )
         } catch (e: Exception) {
             ConnectionStatus(
@@ -215,12 +243,36 @@ class StatusProvider(
         }
     }
 
-    // ---- Meta (Facebook / Instagram): page activity (page token) ----
+    // ---- Meta (Facebook / Instagram): followers + unread page messages (page token) ----
     private fun meta(c: Connection): ConnectionStatus {
-        config.get(SecureConfig.META_PAGE_TOKEN)
+        val token = config.get(SecureConfig.META_PAGE_TOKEN)
             ?: return unconfigured(c, "add Meta page token for live counts")
-        // With a token, query Graph API page insights / unread here and set badge.
-        return ConnectionStatus(c.id, Health.UP, checkedAtMs = now())
+        val base = "https://graph.facebook.com/v19.0"
+        val followers = runCatching {
+            http.newCall(
+                Request.Builder().url("$base/me?fields=followers_count,fan_count,name&access_token=$token").build(),
+            ).execute().use { resp ->
+                val o = JSONObject(resp.body?.string().orEmpty())
+                if (o.has("error")) -2 else maxOf(o.optInt("followers_count", -1), o.optInt("fan_count", -1))
+            }
+        }.getOrDefault(-1)
+        if (followers == -2) return ConnectionStatus(
+            c.id, Health.DEGRADED, checkedAtMs = now(),
+            figures = listOf(Figure("meta", "check token / permissions")),
+        )
+        val unread = runCatching {
+            http.newCall(
+                Request.Builder().url("$base/me/conversations?fields=unread_count&limit=25&access_token=$token").build(),
+            ).execute().use { resp ->
+                val arr = JSONObject(resp.body?.string().orEmpty()).optJSONArray("data")
+                if (arr == null) 0 else (0 until arr.length()).sumOf { arr.optJSONObject(it)?.optInt("unread_count", 0) ?: 0 }
+            }
+        }.getOrDefault(0)
+        val figures = buildList {
+            if (followers >= 0) add(Figure("followers", followers.toString()))
+            add(Figure("unread msgs", unread.toString()))
+        }
+        return ConnectionStatus(c.id, Health.UP, badge = unread, checkedAtMs = now(), figures = figures)
     }
 
     private fun unconfigured(c: Connection, hint: String) =
