@@ -12,19 +12,27 @@ crimson accent, Audiowide numerals and mono uppercase labels.
 
 ## What it shows
 
-**SOCIALS** — direct access, with notification bubbles
-- Facebook · Instagram · LinkedIn
+The home screen is **four category cards**, each a *collective inbox* that rolls up the
+status light (red/amber/green) and total notifications of everything inside it. Tap a card
+to drill into its tiles.
 
-**SYSTEMS** — uptime / health, with status dots (green up · amber degraded · crimson down · grey unknown)
-- outlined-design.com · Tasjeel · Vercel · ODS Supabase · ods-recon · ods-link · ods-assist · ods-aether
+| Category | Connections |
+| --- | --- |
+| **SOCIALS** | Facebook · Instagram · LinkedIn · Telegram Channel |
+| **SERVICES** | GitHub · Vercel · ODS Supabase · Tasjeel |
+| **SITES** | outlined-design.com · ods-recon · ods-link · ods-aether · ods-assist |
+| **MESSAGES** | Telegram · zakkgray1@gmail.com · info@outlined-design.com |
 
-**ACCOUNTS** — unread / activity counts
-- GitHub @zakkzoot · info@outlined-design.com · zakkgray1@gmail.com
+Each tile carries a **status light** (green up · amber degraded · red down · grey unknown)
+and a **notification bubble**. **First tap** expands an inline popup with the detailed
+figures; **tap again** opens the site/link. (The widget tiles deep-link into the app,
+where the two-stage interaction lives — Android widgets can't hold transient popup state.)
 
-Each connection is a small logo tile showing its notification bubble + status dot.
-**First tap** expands an inline popup with the detailed figures; **tap again** opens the
-site/link. (The widget tiles deep-link into the app, where the two-stage interaction
-lives — Android widgets can't hold transient popup state in place.)
+The crimson site hero sits behind the UI as a tinted background, with the ODS mark in the
+header — all of it swappable in **Customise** (see below).
+
+For the full list of every link, API and key, see
+[`CONNECTIONS_SETUP.md`](CONNECTIONS_SETUP.md).
 
 ---
 
@@ -32,12 +40,14 @@ lives — Android widgets can't hold transient popup state in place.)
 
 | Layer | Where |
 | --- | --- |
-| Connection registry (single source of truth) | `model/Connection.kt` |
-| Per-type status checks (HTTP/Vercel/Supabase/GitHub/Gmail/Meta) | `data/StatusProvider.kt` |
+| Connection registry + categories (single source of truth) | `model/Connection.kt` |
+| Per-type status checks (HTTP/Vercel/Supabase/GitHub/Gmail/Meta/Telegram) | `data/StatusProvider.kt` |
 | Concurrent refresh + persistence | `data/ConnectionRepository.kt`, `data/StatusStore.kt` |
-| Encrypted token store | `data/SecureConfig.kt` |
+| Encrypted token store + `.env` import | `data/SecureConfig.kt` |
+| Customisation (accent / background / logo / icons) | `data/AppearanceStore.kt`, `ui/CustomizeScreen.kt` |
 | Background refresh (~15 min) + widget nudge | `work/StatusRefreshWorker.kt` |
-| Full-screen Compose dashboard | `ui/DashboardScreen.kt`, `ui/Tiles.kt` |
+| Full-screen Compose dashboard (category cards + drill-down) | `ui/DashboardScreen.kt`, `ui/Tiles.kt` |
+| Token entry + env import | `ui/SettingsScreen.kt` |
 | Glance home-screen widget (resizable to a full page) | `widget/OdsWidget.kt` |
 | Brand theme (palette, fonts, elevation) | `ui/theme/` |
 
@@ -64,6 +74,15 @@ dashboard) and stored encrypted (`SecureConfig`, EncryptedSharedPreferences). Sa
 triggers an immediate refresh. With nothing configured, a connection still renders and
 deep-links — it just shows an "unknown" dot.
 
+**Bulk setup:** Settings → **Import .env file** reads a `KEY=value` file and fills every
+recognised token at once — see [`.env.example`](.env.example) and
+[`CONNECTIONS_SETUP.md`](CONNECTIONS_SETUP.md).
+
+**Customise:** Settings → **Customise** lets you change the brand accent colour, the
+background image (+ crimson-overlay strength), the header logo, and a per-tile icon for
+any connection. Images are picked from the gallery and copied into the app's private
+storage; everything resets from one button.
+
 **Works with zero setup:** all HTTP tiles (outlined-design.com, ods-recon, ods-link,
 Tasjeel) and **ODS Supabase** (keyless `/auth/v1/health`, URL prefilled to the
 Link-Core project).
@@ -73,8 +92,9 @@ Link-Core project).
 | Source | What it lights up |
 | --- | --- |
 | Vercel API token | latest-deployment state |
-| GitHub PAT | unread-notification badge |
+| GitHub PAT | unread-notification badge + headlines |
 | Meta page token | Facebook / Instagram activity |
+| Telegram bot token | channel member count + bot health |
 | Google OAuth client ID + per-account connect | Gmail unread counts — see [SETUP_GOOGLE_OAUTH.md](SETUP_GOOGLE_OAUTH.md) |
 
 > LinkedIn has no consumer notification API, so it is deep-link only.

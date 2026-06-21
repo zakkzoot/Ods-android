@@ -59,6 +59,7 @@ fun SettingsScreen(
     config: SecureConfig,
     onBack: () -> Unit,
     onSaved: () -> Unit,
+    onCustomize: () -> Unit = {},
 ) {
     val context = LocalContext.current
 
@@ -66,7 +67,32 @@ fun SettingsScreen(
     var github by remember { mutableStateOf(config.get(SecureConfig.GITHUB_PAT).orEmpty()) }
     var supaKey by remember { mutableStateOf(config.get(SecureConfig.SUPABASE_ANON_KEY).orEmpty()) }
     var meta by remember { mutableStateOf(config.get(SecureConfig.META_PAGE_TOKEN).orEmpty()) }
+    var telegram by remember { mutableStateOf(config.get(SecureConfig.TELEGRAM_BOT_TOKEN).orEmpty()) }
     var clientId by remember { mutableStateOf(config.get(SecureConfig.GOOGLE_CLIENT_ID).orEmpty()) }
+    var importMsg by remember { mutableStateOf<String?>(null) }
+
+    // Import a .env file: parse KEY=value lines and write the known keys into SecureConfig.
+    val envPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            val text = runCatching {
+                context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+            }.getOrNull()
+            if (text == null) {
+                importMsg = "Could not read file"
+            } else {
+                val applied = config.applyEnv(SecureConfig.parseEnv(text))
+                // reflect imported values in the visible fields
+                vercel = config.get(SecureConfig.VERCEL_TOKEN).orEmpty()
+                github = config.get(SecureConfig.GITHUB_PAT).orEmpty()
+                supaKey = config.get(SecureConfig.SUPABASE_ANON_KEY).orEmpty()
+                meta = config.get(SecureConfig.META_PAGE_TOKEN).orEmpty()
+                telegram = config.get(SecureConfig.TELEGRAM_BOT_TOKEN).orEmpty()
+                clientId = config.get(SecureConfig.GOOGLE_CLIENT_ID).orEmpty()
+                importMsg = if (applied.isEmpty()) "No recognised keys found" else "Imported: ${applied.joinToString(", ")}"
+                onSaved()
+            }
+        }
+    }
 
     // AppAuth service, disposed with the screen.
     val authService = remember { AuthorizationService(context) }
@@ -126,10 +152,24 @@ fun SettingsScreen(
             style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
         )
 
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Button(
+                onClick = { envPicker.launch("*/*") },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = OdsColors.Crimson, contentColor = OdsColors.Silver,
+                ),
+            ) { Text("Import .env file") }
+            OutlinedButton(onClick = onCustomize) { Text("Customise") }
+        }
+        importMsg?.let {
+            Text(it, style = androidx.compose.material3.MaterialTheme.typography.labelMedium, color = OdsColors.StatusUp)
+        }
+
         Secret("Vercel API token", vercel) { vercel = it }
         Secret("GitHub personal access token", github) { github = it }
         Secret("Supabase anon key (optional — health works without it)", supaKey) { supaKey = it }
         Secret("Meta page access token (Facebook / Instagram)", meta) { meta = it }
+        Secret("Telegram bot token (channel members / message bot)", telegram) { telegram = it }
 
         Spacer(Modifier.height(4.dp))
         Text("EMAIL (GMAIL)", style = androidx.compose.material3.MaterialTheme.typography.labelLarge)
@@ -181,6 +221,7 @@ fun SettingsScreen(
                 config.set(SecureConfig.GITHUB_PAT, github.trim())
                 config.set(SecureConfig.SUPABASE_ANON_KEY, supaKey.trim())
                 config.set(SecureConfig.META_PAGE_TOKEN, meta.trim())
+                config.set(SecureConfig.TELEGRAM_BOT_TOKEN, telegram.trim())
                 config.set(SecureConfig.GOOGLE_CLIENT_ID, clientId.trim())
                 onSaved()
             },

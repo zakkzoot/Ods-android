@@ -13,6 +13,7 @@ enum class Health { UP, DEGRADED, DOWN, UNKNOWN }
  * @param latencyMs    last probe latency, or null
  * @param checkedAtMs  epoch ms of the last successful check
  * @param figures      ordered label -> value pairs shown in the expanded popup
+ * @param items        recent notification headlines (newest first) for the collective inbox
  */
 @Serializable
 data class ConnectionStatus(
@@ -22,6 +23,7 @@ data class ConnectionStatus(
     val latencyMs: Long? = null,
     val checkedAtMs: Long = 0L,
     val figures: List<Figure> = emptyList(),
+    val items: List<String> = emptyList(),
 )
 
 @Serializable

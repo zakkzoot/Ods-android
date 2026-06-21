@@ -4,29 +4,29 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
  * ODS dark theme. The site is dark-only (charcoal void) — there is no light mode.
- * Crimson is the single accent; everything else is charcoal / graphite / silver.
+ * Crimson is the single accent by default; it can be overridden by the user's chosen
+ * [accent] in the Customise screen. Everything else stays charcoal / graphite / silver.
  */
-private val OdsColorScheme = darkColorScheme(
-    primary = OdsColors.Crimson,
-    onPrimary = OdsColors.Silver,
-    background = OdsColors.Charcoal,
-    onBackground = OdsColors.Silver,
-    surface = OdsColors.Graphite,
-    onSurface = OdsColors.Silver,
-    surfaceVariant = OdsColors.Graphite,
-    onSurfaceVariant = OdsColors.SilverDim,
-    outline = OdsColors.SilverFaint,
-    error = OdsColors.Crimson,
-)
-
 @Composable
-fun OdsTheme(content: @Composable () -> Unit) {
+fun OdsTheme(accent: Color = OdsColors.Crimson, content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = OdsColorScheme,
+        colorScheme = darkColorScheme(
+            primary = accent,
+            onPrimary = OdsColors.Silver,
+            background = OdsColors.Charcoal,
+            onBackground = OdsColors.Silver,
+            surface = OdsColors.Graphite,
+            onSurface = OdsColors.Silver,
+            surfaceVariant = OdsColors.Graphite,
+            onSurfaceVariant = OdsColors.SilverDim,
+            outline = OdsColors.SilverFaint,
+            error = OdsColors.Crimson,
+        ),
         typography = OdsTypography,
         content = content,
     )

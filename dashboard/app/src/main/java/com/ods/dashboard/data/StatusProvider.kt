@@ -34,6 +34,7 @@ class StatusProvider(
                 CheckType.GITHUB -> github(c)
                 CheckType.GMAIL -> gmail(c)
                 CheckType.META -> meta(c)
+                CheckType.TELEGRAM -> telegram(c)
                 CheckType.LINK_ONLY -> ConnectionStatus(c.id, Health.UNKNOWN, checkedAtMs = now())
             }
         }.getOrElse { e ->
@@ -106,7 +107,7 @@ class StatusProvider(
         }
     }
 
-    // ---- GitHub: unread notifications count ----
+    // ---- GitHub: unread notifications count + headlines ----
     private fun github(c: Connection): ConnectionStatus {
         val pat = config.get(SecureConfig.GITHUB_PAT)
             ?: return unconfigured(c, "add GitHub PAT in Settings")
@@ -115,13 +116,49 @@ class StatusProvider(
             .header("Authorization", "Bearer $pat")
             .header("Accept", "application/vnd.github+json").build()
         http.newCall(req).execute().use { resp ->
-            val count = runCatching { JSONArray(resp.body?.string().orEmpty()).length() }.getOrDefault(0)
+            val arr = runCatching { JSONArray(resp.body?.string().orEmpty()) }.getOrNull()
+            val count = arr?.length() ?: 0
+            val items = buildList {
+                if (arr != null) for (i in 0 until minOf(arr.length(), 6)) {
+                    val n = arr.optJSONObject(i) ?: continue
+                    val title = n.optJSONObject("subject")?.optString("title").orEmpty()
+                    val repo = n.optJSONObject("repository")?.optString("full_name").orEmpty()
+                    val line = listOf(repo, title).filter { it.isNotBlank() }.joinToString(" · ")
+                    if (line.isNotBlank()) add(line)
+                }
+            }
             return ConnectionStatus(
                 c.id, if (resp.code in 200..399) Health.UP else Health.DOWN,
                 badge = count, checkedAtMs = now(),
                 figures = listOf(Figure("unread", count.toString()), Figure("api", resp.code.toString())),
+                items = items,
             )
         }
+    }
+
+    // ---- Telegram: bot-token health + channel members (best effort) ----
+    private fun telegram(c: Connection): ConnectionStatus {
+        val token = config.get(SecureConfig.TELEGRAM_BOT_TOKEN)
+            ?: return unconfigured(c, "add Telegram bot token in Settings")
+        val me = Request.Builder().url("https://api.telegram.org/bot$token/getMe").build()
+        val ok = http.newCall(me).execute().use { it.code in 200..299 }
+        if (!ok) return ConnectionStatus(
+            c.id, Health.DOWN, checkedAtMs = now(),
+            figures = listOf(Figure("telegram", "invalid bot token")),
+        )
+        val handle = c.apiRef
+        if (handle != null) {
+            val req = Request.Builder()
+                .url("https://api.telegram.org/bot$token/getChatMemberCount?chat_id=$handle").build()
+            val members = http.newCall(req).execute().use { resp ->
+                runCatching { JSONObject(resp.body?.string().orEmpty()).optInt("result", -1) }.getOrDefault(-1)
+            }
+            if (members >= 0) return ConnectionStatus(
+                c.id, Health.UP, checkedAtMs = now(),
+                figures = listOf(Figure("members", members.toString())),
+            )
+        }
+        return ConnectionStatus(c.id, Health.UP, checkedAtMs = now(), figures = listOf(Figure("bot", "ok")))
     }
 
     // ---- Gmail: unread inbox count via OAuth (per account) ----

@@ -4,26 +4,33 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
+import com.ods.dashboard.data.AppearanceStore
 import com.ods.dashboard.data.ConnectionRepository
+import com.ods.dashboard.data.LocalAppearance
 import com.ods.dashboard.data.SecureConfig
 import com.ods.dashboard.model.Connection
+import com.ods.dashboard.ui.CustomizeScreen
 import com.ods.dashboard.ui.DashboardScreen
 import com.ods.dashboard.ui.SettingsScreen
 import com.ods.dashboard.ui.theme.OdsTheme
 import com.ods.dashboard.work.StatusRefreshWorker
 import kotlinx.coroutines.launch
 
+private enum class Screen { DASHBOARD, SETTINGS, CUSTOMIZE }
+
 /**
  * Hosts the full-screen dashboard. Launched standalone or deep-linked from a widget
- * tile via the "ods.dashboard.FOCUS" extra carrying the tapped connection id.
- * A lightweight in-app screen toggle swaps between the dashboard and token settings.
+ * tile via the "ods.dashboard.FOCUS" extra carrying the tapped connection id. A simple
+ * in-app screen state swaps between the dashboard, token settings, and customisation.
  */
 class MainActivity : ComponentActivity() {
 
@@ -33,28 +40,42 @@ class MainActivity : ComponentActivity() {
 
         val repository = ConnectionRepository(this)
         val config = SecureConfig(this)
+        val appearanceStore = AppearanceStore(this)
         StatusRefreshWorker.schedule(this)
         refresh(repository)
 
         val focusId = intent?.getStringExtra(EXTRA_FOCUS)
 
         setContent {
-            OdsTheme {
-                var showSettings by remember { mutableStateOf(false) }
-                if (showSettings) {
-                    androidx.activity.compose.BackHandler { showSettings = false }
-                    SettingsScreen(
-                        config = config,
-                        onBack = { showSettings = false },
-                        onSaved = { showSettings = false; refresh(repository) },
-                    )
-                } else {
-                    DashboardScreen(
-                        repository = repository,
-                        focusId = focusId,
-                        onOpen = ::open,
-                        onOpenSettings = { showSettings = true },
-                    )
+            var appearance by remember { mutableStateOf(appearanceStore.load()) }
+            CompositionLocalProvider(LocalAppearance provides appearance) {
+                OdsTheme(accent = appearance.accent) {
+                    var screen by remember { mutableStateOf(Screen.DASHBOARD) }
+                    when (screen) {
+                        Screen.SETTINGS -> {
+                            BackHandler { screen = Screen.DASHBOARD }
+                            SettingsScreen(
+                                config = config,
+                                onBack = { screen = Screen.DASHBOARD },
+                                onSaved = { screen = Screen.DASHBOARD; refresh(repository) },
+                                onCustomize = { screen = Screen.CUSTOMIZE },
+                            )
+                        }
+                        Screen.CUSTOMIZE -> {
+                            BackHandler { screen = Screen.SETTINGS }
+                            CustomizeScreen(
+                                store = appearanceStore,
+                                onBack = { screen = Screen.SETTINGS },
+                                onChanged = { appearance = appearanceStore.load() },
+                            )
+                        }
+                        Screen.DASHBOARD -> DashboardScreen(
+                            repository = repository,
+                            focusId = focusId,
+                            onOpen = ::open,
+                            onOpenSettings = { screen = Screen.SETTINGS },
+                        )
+                    }
                 }
             }
         }
