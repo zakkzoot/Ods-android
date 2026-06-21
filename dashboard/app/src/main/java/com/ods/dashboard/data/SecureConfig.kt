@@ -49,11 +49,15 @@ class SecureConfig(context: Context) {
         const val META_PAGE_TOKEN = "meta_page_token"
         const val GOOGLE_CLIENT_ID = "google_client_id"
         const val TELEGRAM_BOT_TOKEN = "telegram_bot_token"
+        const val IMAP_HOST = "imap_host"
+        const val IMAP_USER = "imap_user"
+        const val IMAP_PASSWORD = "imap_password"
 
         /** Keys accepted from an imported .env file (UPPER_SNAKE in the file == these). */
         val ENV_KEYS = listOf(
             VERCEL_TOKEN, GITHUB_PAT, SUPABASE_URL, SUPABASE_ANON_KEY,
             META_PAGE_TOKEN, GOOGLE_CLIENT_ID, TELEGRAM_BOT_TOKEN,
+            IMAP_HOST, IMAP_USER, IMAP_PASSWORD,
         )
 
         /** Per-account serialized AppAuth AuthState, keyed by connection id. */

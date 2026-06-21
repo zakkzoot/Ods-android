@@ -17,6 +17,7 @@ import com.ods.dashboard.data.AppearanceStore
 import com.ods.dashboard.data.ConnectionRepository
 import com.ods.dashboard.data.LocalAppearance
 import com.ods.dashboard.data.SecureConfig
+import com.ods.dashboard.model.Category
 import com.ods.dashboard.model.Connection
 import com.ods.dashboard.ui.CustomizeScreen
 import com.ods.dashboard.ui.DashboardScreen
@@ -45,6 +46,8 @@ class MainActivity : ComponentActivity() {
         refresh(repository)
 
         val focusId = intent?.getStringExtra(EXTRA_FOCUS)
+        val focusCategory = intent?.getStringExtra(EXTRA_CATEGORY)
+            ?.let { runCatching { Category.valueOf(it) }.getOrNull() }
 
         setContent {
             var appearance by remember { mutableStateOf(appearanceStore.load()) }
@@ -72,6 +75,7 @@ class MainActivity : ComponentActivity() {
                         Screen.DASHBOARD -> DashboardScreen(
                             repository = repository,
                             focusId = focusId,
+                            initialCategory = focusCategory,
                             onOpen = ::open,
                             onOpenSettings = { screen = Screen.SETTINGS },
                         )
@@ -92,5 +96,6 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_FOCUS = "ods.dashboard.FOCUS"
+        const val EXTRA_CATEGORY = "ods.dashboard.CATEGORY"
     }
 }

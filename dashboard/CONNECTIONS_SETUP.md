@@ -37,7 +37,7 @@ type them in **Settings**, or drop them all in at once via **Settings → Import
 | --- | --- | --- | --- |
 | Telegram | web.telegram.org | `TELEGRAM_BOT_TOKEN` | Bot health only — a bot can't read your personal DMs |
 | zakkgray1@gmail.com | mailto | `GOOGLE_CLIENT_ID` + in-app **Connect** (OAuth) | unread inbox count — see [`SETUP_GOOGLE_OAUTH.md`](SETUP_GOOGLE_OAUTH.md) |
-| info@outlined-design.com | cPanel webmail (`https://s1308.sgp1.mysecurecloudhost.com:2096`) | — (link only) | not a Google account; live count would need an IMAP check (host `s1308.sgp1.mysecurecloudhost.com`, IMAP 993 / POP3 995 / SMTP 465) |
+| info@outlined-design.com | cPanel webmail (`https://s1308.sgp1.mysecurecloudhost.com:2096`) | `IMAP_PASSWORD` (host/user prefilled) | live unread via IMAP over SSL (host `s1308.sgp1.mysecurecloudhost.com`, port 993) |
 
 ## All keys (for the .env import)
 
@@ -50,6 +50,7 @@ type them in **Settings**, or drop them all in at once via **Settings → Import
 | `META_PAGE_TOKEN` | Facebook, Instagram | Meta for Developers → Graph API → page access token |
 | `TELEGRAM_BOT_TOKEN` | Telegram (both) | @BotFather → /newbot → token |
 | `GOOGLE_CLIENT_ID` | Gmail | Google Cloud OAuth client — see `SETUP_GOOGLE_OAUTH.md` |
+| `IMAP_HOST` / `IMAP_USER` / `IMAP_PASSWORD` | info@outlined-design.com | cPanel mailbox (host/user prefilled; password from cPanel → Email Accounts) |
 
 > Gmail needs one extra step the env file can't do: after importing `GOOGLE_CLIENT_ID`,
 > tap **Connect** next to the Gmail account to complete the Google consent in the browser.

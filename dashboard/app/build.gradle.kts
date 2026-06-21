@@ -32,6 +32,16 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
+
+    // Jakarta Mail (android-mail + android-activation) ship overlapping META-INF entries.
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/LICENSE.txt", "META-INF/NOTICE.txt",
+                "META-INF/LICENSE", "META-INF/NOTICE", "META-INF/DEPENDENCIES",
+            )
+        }
+    }
 }
 
 dependencies {
@@ -63,4 +73,8 @@ dependencies {
 
     // Gmail OAuth (installed-app flow with PKCE)
     implementation(libs.appauth)
+
+    // IMAP unread counts for the cPanel mailbox (Jakarta Mail, Android build)
+    implementation(libs.javamail.impl)
+    implementation(libs.javamail.activation)
 }

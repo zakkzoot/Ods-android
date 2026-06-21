@@ -43,42 +43,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.ods.dashboard.R
+import com.ods.dashboard.data.CategoryRollup
 import com.ods.dashboard.data.ConnectionRepository
 import com.ods.dashboard.data.ConnectionStatus
-import com.ods.dashboard.data.Health
 import com.ods.dashboard.data.LocalAppearance
 import com.ods.dashboard.data.rememberFileBitmap
+import com.ods.dashboard.data.rollupCategory
 import com.ods.dashboard.model.Category
 import com.ods.dashboard.model.Connection
 import com.ods.dashboard.model.Connections
 import com.ods.dashboard.ui.theme.OdsColors
 import com.ods.dashboard.ui.theme.odsTile
-
-/** A category's rolled-up state: worst-case light, total unread, and inbox headlines. */
-private data class Rollup(val health: Health, val totalBadge: Int, val items: List<String>)
-
-private fun rollup(category: Category, statuses: Map<String, ConnectionStatus>): Rollup {
-    val members = Connections.inCategory(category)
-    var badge = 0
-    val healths = ArrayList<Health>()
-    val items = ArrayList<String>()
-    members.forEach { c ->
-        val s = statuses[c.id]
-        badge += s?.badge ?: 0
-        healths += s?.health ?: Health.UNKNOWN
-        when {
-            s != null && s.items.isNotEmpty() -> s.items.take(3).forEach { items += it }
-            (s?.badge ?: 0) > 0 -> items += "${c.label}: ${s!!.badge} new"
-        }
-    }
-    val health = when {
-        healths.any { it == Health.DOWN } -> Health.DOWN
-        healths.any { it == Health.DEGRADED } -> Health.DEGRADED
-        healths.any { it == Health.UP } -> Health.UP
-        else -> Health.UNKNOWN
-    }
-    return Rollup(health, badge, items)
-}
+import com.ods.dashboard.util.balanced
 
 /**
  * Home = four category cards, each a collective inbox for its connections. Tapping a card
@@ -89,11 +65,14 @@ private fun rollup(category: Category, statuses: Map<String, ConnectionStatus>):
 fun DashboardScreen(
     repository: ConnectionRepository,
     focusId: String? = null,
+    initialCategory: Category? = null,
     onOpen: (Connection) -> Unit,
     onOpenSettings: () -> Unit = {},
 ) {
     val statuses by repository.statuses.collectAsState(initial = emptyMap())
-    var selected by remember { mutableStateOf(focusId?.let { Connections.byId(it)?.category }) }
+    var selected by remember {
+        mutableStateOf(initialCategory ?: focusId?.let { Connections.byId(it)?.category })
+    }
     var expandedId by remember { mutableStateOf(focusId) }
 
     DashboardBackground {
@@ -163,7 +142,7 @@ private fun HomeCategories(
     ) {
         Header(onOpenSettings)
         Category.entries.forEach { cat ->
-            CategoryCard(category = cat, rollup = rollup(cat, statuses), onClick = { onOpen(cat) })
+            CategoryCard(category = cat, rollup = rollupCategory(cat, statuses), onClick = { onOpen(cat) })
         }
         Spacer(Modifier.height(8.dp))
     }
@@ -190,7 +169,7 @@ private fun Header(onOpenSettings: () -> Unit) {
 }
 
 @Composable
-private fun CategoryCard(category: Category, rollup: Rollup, onClick: () -> Unit) {
+private fun CategoryCard(category: Category, rollup: CategoryRollup, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -218,7 +197,7 @@ private fun CategoryCard(category: Category, rollup: Rollup, onClick: () -> Unit
         if (rollup.items.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 rollup.items.take(3).forEach { line ->
-                    Text("• $line", style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                    Text("• ${balanced(line)}", style = MaterialTheme.typography.bodyMedium, maxLines = 2)
                 }
             }
         }
@@ -233,7 +212,7 @@ private fun CategoryDetail(
     onBack: () -> Unit,
     onTap: (Connection) -> Unit,
 ) {
-    val roll = rollup(category, statuses)
+    val roll = rollupCategory(category, statuses)
     Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 16.dp, top = 8.dp),
@@ -279,7 +258,7 @@ private fun InboxPanel(items: List<String>) {
     ) {
         Text("INBOX", style = MaterialTheme.typography.labelLarge)
         items.take(8).forEach { line ->
-            Text("• $line", style = MaterialTheme.typography.bodyMedium, maxLines = 2)
+            Text("• ${balanced(line)}", style = MaterialTheme.typography.bodyMedium, maxLines = 3)
         }
     }
 }

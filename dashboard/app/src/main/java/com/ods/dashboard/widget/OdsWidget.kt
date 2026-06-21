@@ -3,45 +3,44 @@ package com.ods.dashboard.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.action.ActionParameters
-import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.action.actionStartActivity
-import androidx.glance.appwidget.lazy.GridCells
-import androidx.glance.appwidget.lazy.LazyVerticalGrid
-import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
+import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.layout.width
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ods.dashboard.MainActivity
 import com.ods.dashboard.data.ConnectionStatus
 import com.ods.dashboard.data.Health
 import com.ods.dashboard.data.StatusStore
-import com.ods.dashboard.model.Connection
-import com.ods.dashboard.model.Connections
+import com.ods.dashboard.data.rollupCategory
+import com.ods.dashboard.model.Category
 import com.ods.dashboard.ui.theme.OdsColors
 
 /**
- * The home-screen widget — the at-a-glance grid. Renders every connection as a
- * monogram tile with a status dot + notification bubble, from the cached status map.
- * Tapping a tile deep-links into [MainActivity] focused on that connection, where the
- * two-stage popup/open interaction lives (Glance cannot hold transient popup state).
+ * The home-screen widget — four category rows mirroring the app home. Each row is a
+ * collective inbox: an aggregate status dot + total notification count for everything in
+ * that category, rendered from the cached status map. Tapping a row deep-links into
+ * [MainActivity] focused on that category.
  *
  * Resizes from a small block up to an entire home page (see ods_widget_info.xml).
  */
@@ -60,73 +59,60 @@ class OdsWidget : GlanceAppWidget() {
             Text(
                 "ODS · CONNECTIONS",
                 style = TextStyle(color = ColorProvider(OdsColors.SilverFaint), fontSize = 11.sp),
-                modifier = GlanceModifier.padding(bottom = 6.dp),
+                modifier = GlanceModifier.padding(bottom = 8.dp),
             )
-            LazyVerticalGrid(
-                gridCells = GridCells.Adaptive(72.dp),
-                modifier = GlanceModifier.fillMaxSize(),
-            ) {
-                items(Connections.all, itemId = { it.id.hashCode().toLong() }) { c ->
-                    WidgetTile(context, c, statuses[c.id])
-                }
+            Category.entries.forEach { category ->
+                CategoryRow(context, category, statuses)
+                Spacer(GlanceModifier.height(6.dp))
             }
         }
     }
 
     @Composable
-    private fun WidgetTile(context: Context, c: Connection, status: ConnectionStatus?) {
-        val params: ActionParameters = actionParametersOf(focusKey to c.id)
-        Column(
+    private fun CategoryRow(context: Context, category: Category, statuses: Map<String, ConnectionStatus>) {
+        val roll = rollupCategory(category, statuses)
+        val intent = Intent(context, MainActivity::class.java)
+            .putExtra(MainActivity.EXTRA_CATEGORY, category.name)
+        Row(
             modifier = GlanceModifier
-                .padding(4.dp)
-                .clickable(actionStartActivity(Intent(context, MainActivity::class.java), params)),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .fillMaxWidth()
+                .background(OdsColors.Graphite)
+                .padding(horizontal = 12.dp, vertical = 10.dp)
+                .clickable(actionStartActivity(intent)),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = GlanceModifier.size(56.dp).background(OdsColors.Graphite).padding(6.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(c.monogram, style = TextStyle(color = ColorProvider(OdsColors.Silver), fontSize = 16.sp))
-                // status dot
+            Box(modifier = GlanceModifier.size(10.dp).background(dotColor(roll.health)), content = {})
+            Spacer(GlanceModifier.width(10.dp))
+            Text(
+                category.title,
+                style = TextStyle(color = ColorProvider(OdsColors.Silver), fontSize = 14.sp),
+                modifier = GlanceModifier.defaultWeight(),
+            )
+            if (roll.totalBadge > 0) {
                 Box(
-                    modifier = GlanceModifier.size(9.dp).background(dotColor(status?.health)),
-                    content = {},
-                )
-                // notification bubble
-                val badge = status?.badge ?: 0
-                if (badge > 0) {
-                    Box(
-                        modifier = GlanceModifier.background(OdsColors.Crimson).padding(horizontal = 4.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            if (badge > 99) "99+" else badge.toString(),
-                            style = TextStyle(color = ColorProvider(Color.White), fontSize = 9.sp),
-                        )
-                    }
+                    modifier = GlanceModifier.background(OdsColors.Crimson).padding(horizontal = 6.dp, vertical = 1.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        if (roll.totalBadge > 99) "99+" else roll.totalBadge.toString(),
+                        style = TextStyle(color = ColorProvider(Color.White), fontSize = 11.sp),
+                    )
                 }
             }
-            Text(
-                c.monogram,
-                style = TextStyle(color = ColorProvider(OdsColors.SilverDim), fontSize = 9.sp),
-                modifier = GlanceModifier.fillMaxWidth(),
-            )
         }
     }
 
-    private fun dotColor(h: Health?): ColorProvider {
+    private fun dotColor(h: Health): ColorProvider {
         val c = when (h) {
             Health.UP -> OdsColors.StatusUp
             Health.DEGRADED -> OdsColors.StatusDegraded
             Health.DOWN -> OdsColors.StatusDown
-            else -> OdsColors.StatusUnknown
+            Health.UNKNOWN -> OdsColors.StatusUnknown
         }
         return ColorProvider(c)
     }
 
     companion object {
-        val focusKey = ActionParameters.Key<String>(MainActivity.EXTRA_FOCUS)
-
         /** Redraw every placed widget from the freshly-cached status map. */
         suspend fun refresh(context: Context) {
             OdsWidget().updateAll(context)

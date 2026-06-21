@@ -13,6 +13,7 @@ serialization = "1.7.3"
 coroutines = "1.9.0"
 securityCrypto = "1.1.0-alpha06"
 appauth = "0.11.1"
+javamail = "1.6.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +35,8 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 appauth = { group = "net.openid", name = "appauth", version.ref = "appauth" }
+javamail-impl = { group = "com.sun.mail", name = "android-mail", version.ref = "javamail" }
+javamail-activation = { group = "com.sun.mail", name = "android-activation", version.ref = "javamail" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

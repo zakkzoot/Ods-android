@@ -41,7 +41,8 @@ For the full list of every link, API and key, see
 | Layer | Where |
 | --- | --- |
 | Connection registry + categories (single source of truth) | `model/Connection.kt` |
-| Per-type status checks (HTTP/Vercel/Supabase/GitHub/Gmail/Meta/Telegram) | `data/StatusProvider.kt` |
+| Per-type status checks (HTTP/Vercel/Supabase/GitHub/Gmail/Meta/Telegram/IMAP) | `data/StatusProvider.kt` |
+| Category roll-ups (shared by app + widget) | `data/Rollups.kt` |
 | Concurrent refresh + persistence | `data/ConnectionRepository.kt`, `data/StatusStore.kt` |
 | Encrypted token store + `.env` import | `data/SecureConfig.kt` |
 | Customisation (accent / background / logo / icons) | `data/AppearanceStore.kt`, `ui/CustomizeScreen.kt` |
@@ -108,7 +109,9 @@ Confirm the Tasjeel URL and the social page handles there too.
 
 ## Install the widget
 Long-press the home screen → Widgets → **ODS Connections** → drag on and resize up to
-a full home page.
+a full home page. The widget shows the **four category rows** (aggregate status dot +
+total notifications each); tapping a row opens the app at that category. (Glance widgets
+use the system font and can't read the in-app custom theme.)
 
 ---
 

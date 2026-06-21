@@ -34,6 +34,7 @@ import com.ods.dashboard.data.LocalAppearance
 import com.ods.dashboard.data.rememberFileBitmap
 import com.ods.dashboard.model.Connection
 import com.ods.dashboard.ui.theme.OdsColors
+import com.ods.dashboard.util.balanced
 import com.ods.dashboard.ui.theme.OdsShapes
 import com.ods.dashboard.ui.theme.StatNumberStyle
 import com.ods.dashboard.ui.theme.odsTile
@@ -132,9 +133,9 @@ fun ConnectionTile(
         }
 
         Text(
-            connection.label,
+            balanced(connection.label),
             style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
+            maxLines = 2,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -148,9 +149,9 @@ fun ConnectionTile(
 @Composable
 private fun StatusPopup(status: ConnectionStatus?) {
     val accent = LocalAppearance.current.accent
+    // No fillMaxWidth: the popup wraps its content, so its width tracks the longest line.
     Column(
         modifier = Modifier
-            .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
             .background(OdsColors.Charcoal)
             .padding(10.dp),
@@ -158,13 +159,13 @@ private fun StatusPopup(status: ConnectionStatus?) {
     ) {
         val figures: List<Figure> = status?.figures ?: listOf(Figure("status", "no data yet"))
         figures.forEach { f ->
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(f.label.uppercase(), style = MaterialTheme.typography.labelMedium)
-                Text(f.value, style = MaterialTheme.typography.bodyMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(balanced(f.label.uppercase()), style = MaterialTheme.typography.labelMedium)
+                Text(balanced(f.value), style = MaterialTheme.typography.bodyMedium)
             }
         }
         Text(
-            "tap again to open",
+            balanced("tap again to open"),
             style = MaterialTheme.typography.labelMedium,
             color = accent,
             modifier = Modifier.padding(top = 2.dp),

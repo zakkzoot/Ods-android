@@ -9,7 +9,10 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.Properties
 import java.util.concurrent.TimeUnit
+import javax.mail.Folder
+import javax.mail.Session
 
 /**
  * Resolves the live status of one connection. All work runs on IO. Failures degrade
@@ -35,6 +38,7 @@ class StatusProvider(
                 CheckType.GMAIL -> gmail(c)
                 CheckType.META -> meta(c)
                 CheckType.TELEGRAM -> telegram(c)
+                CheckType.IMAP -> imap(c)
                 CheckType.LINK_ONLY -> ConnectionStatus(c.id, Health.UNKNOWN, checkedAtMs = now())
             }
         }.getOrElse { e ->
@@ -174,6 +178,41 @@ class StatusProvider(
             c.id, Health.UP, badge = count, checkedAtMs = now(),
             figures = listOf(Figure("unread", count.toString())),
         )
+    }
+
+    // ---- IMAP: unread inbox count for the cPanel mailbox ----
+    private fun imap(c: Connection): ConnectionStatus {
+        val host = config.get(SecureConfig.IMAP_HOST) ?: Defaults.IMAP_HOST
+        val user = config.get(SecureConfig.IMAP_USER) ?: Defaults.IMAP_USER
+        val pass = config.get(SecureConfig.IMAP_PASSWORD)
+            ?: return unconfigured(c, "add mailbox password in Settings")
+        val props = Properties().apply {
+            put("mail.store.protocol", "imaps")
+            put("mail.imaps.ssl.enable", "true")
+            put("mail.imaps.connectiontimeout", "8000")
+            put("mail.imaps.timeout", "8000")
+            put("mail.imaps.writetimeout", "8000")
+        }
+        val store = Session.getInstance(props).getStore("imaps")
+        return try {
+            store.connect(host, Defaults.IMAP_PORT, user, pass)
+            val inbox = store.getFolder("INBOX")
+            inbox.open(Folder.READ_ONLY)
+            val unread = inbox.unreadMessageCount.coerceAtLeast(0)
+            val total = inbox.messageCount.coerceAtLeast(0)
+            inbox.close(false)
+            ConnectionStatus(
+                c.id, Health.UP, badge = unread, checkedAtMs = now(),
+                figures = listOf(Figure("unread", unread.toString()), Figure("total", total.toString())),
+            )
+        } catch (e: Exception) {
+            ConnectionStatus(
+                c.id, Health.DOWN, checkedAtMs = now(),
+                figures = listOf(Figure("imap", e.message ?: "connect failed")),
+            )
+        } finally {
+            runCatching { store.close() }
+        }
     }
 
     // ---- Meta (Facebook / Instagram): page activity (page token) ----

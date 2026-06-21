@@ -20,6 +20,7 @@ enum class CheckType {
     GMAIL,       // Gmail unread count (OAuth per account)
     META,        // Meta Graph API page activity (Facebook / Instagram)
     TELEGRAM,    // Telegram Bot API (channel members / message updates)
+    IMAP,        // IMAP inbox unread count (e.g. the cPanel mailbox)
     LINK_ONLY,   // no status source — deep-link only (e.g. LinkedIn)
 }
 
@@ -93,10 +94,10 @@ object Connections {
         Connection("email_gmail", "zakkgray1@gmail.com", "@G", Category.MESSAGES, CheckType.GMAIL,
             url = "mailto:zakkgray1@gmail.com"),
         // info@outlined-design.com is NOT a Google account — it's the business mailbox on
-        // cPanel (host s1308.sgp1.mysecurecloudhost.com, IMAP/POP/SMTP). The tile opens
-        // its webmail inbox (no Gmail OAuth / unread count). To light up a live count
-        // later, add an IMAP check against that host with stored credentials.
-        Connection("email_ods", "info@outlined-design.com", "@O", Category.MESSAGES, CheckType.LINK_ONLY,
+        // cPanel (host s1308.sgp1.mysecurecloudhost.com). Live unread comes from an IMAP
+        // check (host/user prefilled in Defaults; add the password in Settings); tapping
+        // the tile opens its webmail inbox.
+        Connection("email_ods", "info@outlined-design.com", "@O", Category.MESSAGES, CheckType.IMAP,
             url = "https://s1308.sgp1.mysecurecloudhost.com:2096"),
     )
 

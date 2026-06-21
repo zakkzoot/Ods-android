@@ -40,6 +40,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.ods.dashboard.data.Defaults
 import com.ods.dashboard.data.GmailAuth
 import com.ods.dashboard.data.SecureConfig
 import com.ods.dashboard.model.CheckType
@@ -69,6 +70,9 @@ fun SettingsScreen(
     var meta by remember { mutableStateOf(config.get(SecureConfig.META_PAGE_TOKEN).orEmpty()) }
     var telegram by remember { mutableStateOf(config.get(SecureConfig.TELEGRAM_BOT_TOKEN).orEmpty()) }
     var clientId by remember { mutableStateOf(config.get(SecureConfig.GOOGLE_CLIENT_ID).orEmpty()) }
+    var imapHost by remember { mutableStateOf(config.get(SecureConfig.IMAP_HOST) ?: Defaults.IMAP_HOST) }
+    var imapUser by remember { mutableStateOf(config.get(SecureConfig.IMAP_USER) ?: Defaults.IMAP_USER) }
+    var imapPass by remember { mutableStateOf(config.get(SecureConfig.IMAP_PASSWORD).orEmpty()) }
     var importMsg by remember { mutableStateOf<String?>(null) }
 
     // Import a .env file: parse KEY=value lines and write the known keys into SecureConfig.
@@ -88,6 +92,9 @@ fun SettingsScreen(
                 meta = config.get(SecureConfig.META_PAGE_TOKEN).orEmpty()
                 telegram = config.get(SecureConfig.TELEGRAM_BOT_TOKEN).orEmpty()
                 clientId = config.get(SecureConfig.GOOGLE_CLIENT_ID).orEmpty()
+                imapHost = config.get(SecureConfig.IMAP_HOST) ?: Defaults.IMAP_HOST
+                imapUser = config.get(SecureConfig.IMAP_USER) ?: Defaults.IMAP_USER
+                imapPass = config.get(SecureConfig.IMAP_PASSWORD).orEmpty()
                 importMsg = if (applied.isEmpty()) "No recognised keys found" else "Imported: ${applied.joinToString(", ")}"
                 onSaved()
             }
@@ -214,6 +221,17 @@ fun SettingsScreen(
             }
         }
 
+        Spacer(Modifier.height(4.dp))
+        Text("MAILBOX (IMAP)", style = androidx.compose.material3.MaterialTheme.typography.labelLarge)
+        Text(
+            "Unread count for info@outlined-design.com. Host and username are prefilled for " +
+                "the cPanel mailbox — just add the password (stored encrypted).",
+            style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+        )
+        Plain("IMAP host", imapHost) { imapHost = it }
+        Plain("IMAP username", imapUser) { imapUser = it }
+        Secret("IMAP password", imapPass) { imapPass = it }
+
         Spacer(Modifier.height(8.dp))
         Button(
             onClick = {
@@ -223,6 +241,9 @@ fun SettingsScreen(
                 config.set(SecureConfig.META_PAGE_TOKEN, meta.trim())
                 config.set(SecureConfig.TELEGRAM_BOT_TOKEN, telegram.trim())
                 config.set(SecureConfig.GOOGLE_CLIENT_ID, clientId.trim())
+                config.set(SecureConfig.IMAP_HOST, imapHost.trim())
+                config.set(SecureConfig.IMAP_USER, imapUser.trim())
+                config.set(SecureConfig.IMAP_PASSWORD, imapPass.trim())
                 onSaved()
             },
             colors = ButtonDefaults.buttonColors(

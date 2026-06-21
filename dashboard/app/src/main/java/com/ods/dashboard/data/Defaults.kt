@@ -18,4 +18,10 @@ object Defaults {
      * NOT shipped — enter it in Settings (see SETUP_GOOGLE_OAUTH.md).
      */
     const val GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.readonly"
+
+    /** IMAP defaults for the cPanel mailbox (info@outlined-design.com). Password is never
+     *  shipped — enter it in Settings (stored encrypted). */
+    const val IMAP_HOST = "s1308.sgp1.mysecurecloudhost.com"
+    const val IMAP_USER = "info@outlined-design.com"
+    const val IMAP_PORT = 993
 }
