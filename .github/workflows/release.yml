@@ -1,0 +1,94 @@
+name: Release APKs
+
+# Builds both debug APKs and publishes them as a GitHub Release so they can be
+# installed straight from the phone with a single tap (no Actions login needed).
+#
+# Trigger either way:
+#   - push a tag:           git tag v1.0.0 && git push origin v1.0.0
+#   - or run it manually:   Actions -> Release APKs -> Run workflow -> enter a version
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: spotlight-wallpaper
+            asset: ods-spotlight.apk
+          - module: dashboard
+            asset: ods-dashboard.apk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build debug APK
+        working-directory: ${{ matrix.module }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Rename APK
+        run: cp ${{ matrix.module }}/app/build/outputs/apk/debug/app-debug.apk ${{ matrix.asset }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download built APKs
+        uses: actions/download-artifact@v4
+        with:
+          path: apks
+          merge-multiple: true
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: ODS Android ${{ github.event.inputs.tag || github.ref_name }}
+          body: |
+            Tap an APK below on your Galaxy S23 Ultra to install (debug builds).
+
+            - **ods-spotlight.apk** — ODS Spotlight live wallpaper
+            - **ods-dashboard.apk** — ODS Connections dashboard + widget
+
+            First time only: when One UI warns about the source, choose
+            **Settings -> Allow from this source**, then install. For Gmail unread
+            counts in the dashboard, see `dashboard/SETUP_GOOGLE_OAUTH.md`.
+          files: apks/*.apk
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true

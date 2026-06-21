@@ -1,8 +1,12 @@
 # Gmail setup (one-time)
 
-The dashboard reads **unread inbox counts** for `info@outlined-design.com` and
+The dashboard reads the **unread inbox count** for the Google account
 `zakkgray1@gmail.com` over the Gmail API using OAuth. Google requires an OAuth client
 that only you can create — there is no way around this. It takes ~5 minutes.
+
+> `info@outlined-design.com` is **not** a Google account, so it is not set up here. Its
+> dashboard tile simply deep-links via email (tap to compose); it shows no unread count.
+> To wire a live count for it later, add its real mail provider (e.g. an IMAP check).
 
 ## 1. Create the OAuth client
 1. Go to <https://console.cloud.google.com/> and create (or pick) a project.
@@ -10,9 +14,8 @@ that only you can create — there is no way around this. It takes ~5 minutes.
 3. **APIs & Services → OAuth consent screen:**
    - User type: **External**.
    - Add the scope `.../auth/gmail.readonly`.
-   - Under **Test users**, add both addresses (`info@outlined-design.com`,
-     `zakkgray1@gmail.com`). In Testing mode only test users can authorize, which is
-     fine for a personal app.
+   - Under **Test users**, add `zakkgray1@gmail.com`. In Testing mode only test users
+     can authorize, which is fine for a personal app.
 4. **APIs & Services → Credentials → Create credentials → OAuth client ID:**
    - Application type: **Android**.
    - Package name: `com.ods.dashboard`.
@@ -28,8 +31,8 @@ that only you can create — there is no way around this. It takes ~5 minutes.
 ## 2. Enter it in the app
 1. Open the dashboard → gear (top-right) → **EMAIL (GMAIL)**.
 2. Paste the **Google OAuth client ID**.
-3. Tap **Connect** next to each address and complete the Google sign-in/consent.
-4. Done — the two email tiles now show unread inbox counts and refresh in the
+3. Tap **Connect** next to `zakkgray1@gmail.com` and complete the Google sign-in/consent.
+4. Done — the Gmail tile now shows its unread inbox count and refreshes in the
    background every ~15 minutes.
 
 ## Notes

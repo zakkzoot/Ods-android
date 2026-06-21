@@ -2,10 +2,10 @@ package com.ods.dashboard.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import com.ods.dashboard.R
 
@@ -15,30 +15,26 @@ import com.ods.dashboard.R
  *   Share Tech Mono -> kickers / labels (UPPERCASE, wide tracking)  (.font-mono-kicker)
  *   Sora            -> body / UI (default)
  *
- * These are all Google Fonts. The cleanest path is the downloadable-fonts provider
- * below (no binaries to ship). If you prefer bundling, drop the .ttf files in
- * res/font/ and swap each FontFamily for Font(R.font.<name>).
- *
- * Downloadable-fonts setup (one-time):
- *  1) build.gradle: implementation("androidx.compose.ui:ui-text-google-fonts:<ver>")
- *  2) res/values/font_certs.xml + res/font/font_provider.xml per the AndroidX
- *     "Downloadable fonts" guide, then reference R.array.com_google_android_gms_fonts_certs
- *     in the provider below.
+ * The fonts are BUNDLED as OFL TrueType files in res/font/ (not downloaded at runtime),
+ * so they render identically on every device with no dependency on Google Play Services.
+ * Sora ships as a single variable font; each weight is selected via its `wght` axis.
  */
-private val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs,
+
+/** One weight of the Sora variable font, pinned on the `wght` axis. */
+private fun sora(weight: Int) = Font(
+    resId = R.font.sora_variable,
+    weight = FontWeight(weight),
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
 )
 
-val Audiowide = FontFamily(Font(googleFont = GoogleFont("Audiowide"), fontProvider = provider))
-val ShareTechMono = FontFamily(Font(googleFont = GoogleFont("Share Tech Mono"), fontProvider = provider))
+val Audiowide = FontFamily(Font(R.font.audiowide_regular))
+val ShareTechMono = FontFamily(Font(R.font.sharetechmono_regular))
 val Sora = FontFamily(
-    Font(googleFont = GoogleFont("Sora"), fontProvider = provider, weight = FontWeight.Light),
-    Font(googleFont = GoogleFont("Sora"), fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = GoogleFont("Sora"), fontProvider = provider, weight = FontWeight.Medium),
-    Font(googleFont = GoogleFont("Sora"), fontProvider = provider, weight = FontWeight.SemiBold),
-    Font(googleFont = GoogleFont("Sora"), fontProvider = provider, weight = FontWeight.Bold),
+    sora(300), // Light
+    sora(400), // Normal
+    sora(500), // Medium
+    sora(600), // SemiBold
+    sora(700), // Bold
 )
 
 /** Mono kicker: UPPERCASE, wide tracking. Apply text = "label".uppercase() at call sites. */

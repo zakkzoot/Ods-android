@@ -134,8 +134,10 @@ fun SettingsScreen(
         Spacer(Modifier.height(4.dp))
         Text("EMAIL (GMAIL)", style = androidx.compose.material3.MaterialTheme.typography.labelLarge)
         Text(
-            "Enter your Google OAuth client ID (see SETUP_GOOGLE_OAUTH.md), then connect " +
-                "each account to show unread counts.",
+            "Gmail unread counts only. Enter your Google OAuth client ID (see " +
+                "SETUP_GOOGLE_OAUTH.md), then connect the Google account below. " +
+                "info@outlined-design.com is not a Google account, so it is not listed " +
+                "here — its tile deep-links via email instead.",
             style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
         )
         Plain("Google OAuth client ID", clientId) { clientId = it }

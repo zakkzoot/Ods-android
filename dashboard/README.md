@@ -102,3 +102,8 @@ top-level `../publish.sh` (requires an authenticated `gh` CLI).
 Locked to the site (see `ui/theme/Color.kt` / `Type.kt`):
 charcoal `#0E0E10` · graphite `#1A1A1E` · silver `#C9CDD4` · crimson `#D42B2B` ·
 Audiowide / Share Tech Mono / Sora. Crimson is the only accent — used with restraint.
+
+Fonts are **bundled** as OFL TrueType files in `res/font/` (Audiowide, Share Tech Mono,
+and the Sora variable font), so the app renders identically everywhere with no runtime
+download or Google Play Services dependency. (The home-screen widget uses the system
+font — Glance can't embed custom fonts.)
