@@ -1,6 +1,7 @@
 package com.ods.dashboard.data
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
@@ -16,13 +17,32 @@ import androidx.security.crypto.MasterKey
  *  - gmail_*           : Gmail OAuth handled separately by AccountManager/AuthorizationClient
  */
 class SecureConfig(context: Context) {
-    private val prefs = EncryptedSharedPreferences.create(
-        context,
-        "ods_secure_config",
-        MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-    )
+    private val app = context.applicationContext
+    private val prefs: SharedPreferences
+
+    /** True when tokens are stored encrypted; false if we fell back to plain prefs. */
+    val encrypted: Boolean
+
+    init {
+        val enc = runCatching {
+            EncryptedSharedPreferences.create(
+                app,
+                "ods_secure_config",
+                MasterKey.Builder(app).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+            )
+        }.getOrNull()
+        if (enc != null) {
+            prefs = enc
+            encrypted = true
+        } else {
+            // Some devices/ROMs fail to provision the AndroidKeyStore-backed key. Rather
+            // than crash on launch, fall back to plain prefs so the app still runs.
+            prefs = app.getSharedPreferences("ods_secure_config_plain", Context.MODE_PRIVATE)
+            encrypted = false
+        }
+    }
 
     fun get(key: String): String? = prefs.getString(key, null)?.takeIf { it.isNotBlank() }
     fun set(key: String, value: String?) = prefs.edit().putString(key, value).apply()

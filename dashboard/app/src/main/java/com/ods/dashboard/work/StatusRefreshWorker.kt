@@ -34,14 +34,17 @@ class StatusRefreshWorker(
         private const val NAME = "ods_status_refresh"
 
         fun schedule(context: Context) {
-            val request = PeriodicWorkRequestBuilder<StatusRefreshWorker>(15, TimeUnit.MINUTES)
-                .setConstraints(
-                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build(),
+            // Never let scheduling crash app launch (e.g. WorkManager init edge cases).
+            runCatching {
+                val request = PeriodicWorkRequestBuilder<StatusRefreshWorker>(15, TimeUnit.MINUTES)
+                    .setConstraints(
+                        Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build(),
+                    )
+                    .build()
+                WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                    NAME, ExistingPeriodicWorkPolicy.KEEP, request,
                 )
-                .build()
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                NAME, ExistingPeriodicWorkPolicy.KEEP, request,
-            )
+            }
         }
     }
 }
