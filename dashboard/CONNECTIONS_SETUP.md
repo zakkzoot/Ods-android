@@ -23,7 +23,11 @@ type them in **Settings**, or drop them all in at once via **Settings → Import
 | ODS Supabase | Supabase dashboard | nothing (keyless health); `SUPABASE_ANON_KEY` optional | `{SUPABASE_URL}/auth/v1/health` |
 | Tasjeel | tasjeel.app *(set real URL)* | — (HTTP uptime) | HEAD request |
 
-### SITES (HTTP uptime — no tokens)
+### SITES (uptime / load time)
+Device-side HTTP gives up/down + latency with no token. Set `SUPABASE_ANON_KEY` and the
+Sites tiles upgrade to **ODS Pulse** data — server-side **status + load time (TTFB) + 24h
+uptime %** (see [`ods-pulse/`](ods-pulse/README.md)).
+
 | Connection | URL |
 | --- | --- |
 | outlined-design.com | https://www.outlined-design.com |
@@ -46,7 +50,7 @@ type them in **Settings**, or drop them all in at once via **Settings → Import
 | `VERCEL_TOKEN` | Vercel | vercel.com → Account Settings → Tokens |
 | `GITHUB_PAT` | GitHub | github.com → Settings → Developer settings → PAT (notifications scope) |
 | `SUPABASE_URL` | ODS Supabase | Supabase project URL (defaults to the Link-Core project) |
-| `SUPABASE_ANON_KEY` | ODS Supabase | Supabase → Project Settings → API (optional) |
+| `SUPABASE_ANON_KEY` | ODS Supabase + **Sites uptime/load (ODS Pulse)** | Supabase → Project Settings → API → anon/publishable key |
 | `META_PAGE_TOKEN` | Facebook, Instagram | Meta for Developers → Graph API → page access token |
 | `TELEGRAM_BOT_TOKEN` | Telegram (both) | @BotFather → /newbot → token |
 | `GOOGLE_CLIENT_ID` | Gmail | Google Cloud OAuth client — see `SETUP_GOOGLE_OAUTH.md` |

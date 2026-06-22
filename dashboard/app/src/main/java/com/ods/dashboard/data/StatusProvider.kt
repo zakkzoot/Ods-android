@@ -30,10 +30,10 @@ class StatusProvider(
         .readTimeout(8, TimeUnit.SECONDS)
         .build()
 
-    suspend fun check(c: Connection): ConnectionStatus = withContext(Dispatchers.IO) {
+    suspend fun check(c: Connection, pulse: PulseSite? = null): ConnectionStatus = withContext(Dispatchers.IO) {
         runCatching {
             when (c.check) {
-                CheckType.HTTP -> httpHealth(c)
+                CheckType.HTTP -> if (pulse != null) httpFromPulse(c, pulse) else httpHealth(c)
                 CheckType.VERCEL -> vercel(c)
                 CheckType.SUPABASE -> supabase(c)
                 CheckType.GITHUB -> github(c)
@@ -49,6 +49,24 @@ class StatusProvider(
                 figures = listOf(Figure("error", e.message ?: "check failed")),
             )
         }
+    }
+
+    // ---- Site health from ODS Pulse (server-side uptime/latency) ----
+    private fun httpFromPulse(c: Connection, p: PulseSite): ConnectionStatus {
+        val health = when {
+            p.ok == true && (p.ttfbMs ?: 0) <= 2000 -> Health.UP
+            p.ok == true -> Health.DEGRADED
+            p.ok == false -> Health.DOWN
+            else -> Health.UNKNOWN
+        }
+        val figures = buildList {
+            p.status?.let { add(Figure("status", it.toString())) }
+            p.ttfbMs?.let { add(Figure("load", "$it ms")) }
+            p.uptime24h?.let { add(Figure("uptime 24h", "$it%")) }
+            p.checks24h?.let { add(Figure("checks 24h", it.toString())) }
+            add(Figure("host", c.url.substringAfter("//").substringBefore("/")))
+        }
+        return ConnectionStatus(c.id, health, latencyMs = p.ttfbMs?.toLong(), checkedAtMs = now(), figures = figures)
     }
 
     // ---- HTTP uptime: 2xx/3xx = up, slow = degraded, 5xx/timeout = down ----
