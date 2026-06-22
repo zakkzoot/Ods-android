@@ -110,6 +110,8 @@ class MainActivity : ComponentActivity() {
                         }
                         Screen.DASHBOARD -> DashboardScreen(
                             repository = repository,
+                            appearanceStore = appearanceStore,
+                            onAppearanceChanged = { appearance = appearanceStore.load() },
                             focusId = focusId,
                             initialCategory = focusCategory,
                             onOpen = ::open,

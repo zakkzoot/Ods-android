@@ -25,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +44,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.ods.dashboard.R
+import com.ods.dashboard.data.AppearanceStore
 import com.ods.dashboard.data.CategoryRollup
 import com.ods.dashboard.data.ConnectionRepository
 import com.ods.dashboard.data.ConnectionStatus
@@ -64,6 +66,8 @@ import com.ods.dashboard.util.balanced
 @Composable
 fun DashboardScreen(
     repository: ConnectionRepository,
+    appearanceStore: AppearanceStore,
+    onAppearanceChanged: () -> Unit,
     focusId: String? = null,
     initialCategory: Category? = null,
     onOpen: (Connection) -> Unit,
@@ -74,21 +78,35 @@ fun DashboardScreen(
         mutableStateOf(initialCategory ?: focusId?.let { Connections.byId(it)?.category })
     }
     var expandedId by remember { mutableStateOf(focusId) }
+    var arranging by remember { mutableStateOf(false) }
 
     DashboardBackground {
         val cat = selected
-        if (cat == null) {
-            HomeCategories(statuses = statuses, onOpenSettings = onOpenSettings, onOpen = { selected = it })
-        } else {
-            CategoryDetail(
+        when {
+            cat != null && arranging -> CategoryArrange(
+                category = cat,
+                store = appearanceStore,
+                onChanged = onAppearanceChanged,
+                onDone = { arranging = false },
+            )
+            cat != null -> CategoryDetail(
                 category = cat,
                 statuses = statuses,
                 expandedId = expandedId,
                 onBack = { selected = null; expandedId = null },
+                onArrange = { arranging = true },
                 onTap = { c -> expandedId = toggle(expandedId, c, onOpen) },
             )
+            else -> HomeCategories(statuses = statuses, onOpenSettings = onOpenSettings, onOpen = { selected = it })
         }
     }
+}
+
+/** Category enum order honouring the user's saved [categoryOrder]; unknowns appended. */
+private fun orderedCategories(saved: List<String>): List<Category> {
+    val byName = Category.entries.associateBy { it.name }
+    val first = saved.mapNotNull { byName[it] }
+    return first + Category.entries.filter { it !in first }
 }
 
 /** First tap expands; tapping the already-expanded tile opens it. */
@@ -141,7 +159,7 @@ private fun HomeCategories(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Header(onOpenSettings)
-        Category.entries.forEach { cat ->
+        orderedCategories(LocalAppearance.current.categoryOrder).forEach { cat ->
             CategoryCard(category = cat, rollup = rollupCategory(cat, statuses), onClick = { onOpen(cat) })
         }
         Spacer(Modifier.height(8.dp))
@@ -210,12 +228,15 @@ private fun CategoryDetail(
     statuses: Map<String, ConnectionStatus>,
     expandedId: String?,
     onBack: () -> Unit,
+    onArrange: () -> Unit,
     onTap: (Connection) -> Unit,
 ) {
+    val appearance = LocalAppearance.current
     val roll = rollupCategory(category, statuses)
+    val ids = appearance.orderedTiles(category.name, Connections.inCategory(category).map { it.id })
     Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 16.dp, top = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 8.dp, top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
@@ -226,6 +247,9 @@ private fun CategoryDetail(
                 Text(category.title, style = MaterialTheme.typography.headlineMedium)
             }
             NotificationBubble(roll.totalBadge)
+            IconButton(onClick = onArrange) {
+                Icon(Icons.Filled.DragIndicator, contentDescription = "Arrange", tint = OdsColors.Silver)
+            }
         }
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 104.dp),
@@ -238,7 +262,8 @@ private fun CategoryDetail(
                     InboxPanel(roll.items)
                 }
             }
-            items(Connections.inCategory(category), key = { it.id }) { c ->
+            items(ids, key = { it }, span = { GridItemSpan(appearance.spanOf(it).coerceAtMost(maxLineSpan)) }) { id ->
+                val c = Connections.byId(id) ?: return@items
                 ConnectionTile(
                     connection = c,
                     status = statuses[c.id],

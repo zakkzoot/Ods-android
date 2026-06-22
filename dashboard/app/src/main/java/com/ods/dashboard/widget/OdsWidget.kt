@@ -29,12 +29,15 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.ods.dashboard.MainActivity
+import com.ods.dashboard.data.Appearance
+import com.ods.dashboard.data.AppearanceStore
 import com.ods.dashboard.data.ConnectionStatus
 import com.ods.dashboard.data.Health
 import com.ods.dashboard.data.StatusStore
 import com.ods.dashboard.data.rollupCategory
 import com.ods.dashboard.model.Category
 import com.ods.dashboard.ui.theme.OdsColors
+import com.ods.dashboard.util.balanced
 
 /**
  * The home-screen widget — four category rows mirroring the app home. Each row is a
@@ -48,11 +51,20 @@ class OdsWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val statuses = StatusStore(context).snapshot()
-        provideContent { WidgetBody(context, statuses) }
+        val appearance = AppearanceStore(context).load()
+        provideContent { WidgetBody(context, statuses, appearance) }
+    }
+
+    private fun shownCategories(appearance: Appearance): List<Category> {
+        val byName = Category.entries.associateBy { it.name }
+        val ordered = appearance.categoryOrder.mapNotNull { byName[it] } +
+            Category.entries.filter { it.name !in appearance.categoryOrder }
+        return if (appearance.widgetCategories.isEmpty()) ordered
+        else ordered.filter { it.name in appearance.widgetCategories }
     }
 
     @Composable
-    private fun WidgetBody(context: Context, statuses: Map<String, ConnectionStatus>) {
+    private fun WidgetBody(context: Context, statuses: Map<String, ConnectionStatus>, appearance: Appearance) {
         Column(
             modifier = GlanceModifier.fillMaxSize().background(OdsColors.Charcoal).padding(10.dp),
         ) {
@@ -61,41 +73,56 @@ class OdsWidget : GlanceAppWidget() {
                 style = TextStyle(color = ColorProvider(OdsColors.SilverFaint), fontSize = 11.sp),
                 modifier = GlanceModifier.padding(bottom = 8.dp),
             )
-            Category.entries.forEach { category ->
-                CategoryRow(context, category, statuses)
+            shownCategories(appearance).forEach { category ->
+                CategoryBlock(context, category, statuses, appearance)
                 Spacer(GlanceModifier.height(6.dp))
             }
         }
     }
 
     @Composable
-    private fun CategoryRow(context: Context, category: Category, statuses: Map<String, ConnectionStatus>) {
+    private fun CategoryBlock(
+        context: Context,
+        category: Category,
+        statuses: Map<String, ConnectionStatus>,
+        appearance: Appearance,
+    ) {
         val roll = rollupCategory(category, statuses)
         val intent = Intent(context, MainActivity::class.java)
             .putExtra(MainActivity.EXTRA_CATEGORY, category.name)
-        Row(
+        Column(
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .background(OdsColors.Graphite)
                 .padding(horizontal = 12.dp, vertical = 10.dp)
                 .clickable(actionStartActivity(intent)),
-            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(modifier = GlanceModifier.size(10.dp).background(dotColor(roll.health)), content = {})
-            Spacer(GlanceModifier.width(10.dp))
-            Text(
-                category.title,
-                style = TextStyle(color = ColorProvider(OdsColors.Silver), fontSize = 14.sp),
-                modifier = GlanceModifier.defaultWeight(),
-            )
-            if (roll.totalBadge > 0) {
-                Box(
-                    modifier = GlanceModifier.background(OdsColors.Crimson).padding(horizontal = 6.dp, vertical = 1.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = GlanceModifier.size(10.dp).background(dotColor(roll.health)), content = {})
+                Spacer(GlanceModifier.width(10.dp))
+                Text(
+                    category.title,
+                    style = TextStyle(color = ColorProvider(OdsColors.Silver), fontSize = 14.sp),
+                    modifier = GlanceModifier.defaultWeight(),
+                )
+                if (roll.totalBadge > 0) {
+                    Box(
+                        modifier = GlanceModifier.background(appearance.accent).padding(horizontal = 6.dp, vertical = 1.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            if (roll.totalBadge > 99) "99+" else roll.totalBadge.toString(),
+                            style = TextStyle(color = ColorProvider(Color.White), fontSize = 11.sp),
+                        )
+                    }
+                }
+            }
+            if (appearance.widgetShowInbox && roll.items.isNotEmpty()) {
+                roll.items.take(2).forEach { line ->
                     Text(
-                        if (roll.totalBadge > 99) "99+" else roll.totalBadge.toString(),
-                        style = TextStyle(color = ColorProvider(Color.White), fontSize = 11.sp),
+                        "• ${balanced(line)}",
+                        style = TextStyle(color = ColorProvider(OdsColors.SilverDim), fontSize = 11.sp),
+                        modifier = GlanceModifier.padding(top = 3.dp),
                     )
                 }
             }

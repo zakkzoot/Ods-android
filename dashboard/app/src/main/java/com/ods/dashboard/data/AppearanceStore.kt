@@ -26,7 +26,21 @@ data class Appearance(
     val overlayAlpha: Float = 0.55f,      // crimson scrim strength over the background
     val logoPath: String? = null,         // custom header logo, else the ODS cube
     val iconPaths: Map<String, String> = emptyMap(), // connectionId -> tile icon image
-)
+    val tileOrder: Map<String, List<String>> = emptyMap(), // category name -> ordered ids
+    val tileSpan: Map<String, Int> = emptyMap(),  // connectionId -> grid span (1 or 2)
+    val categoryOrder: List<String> = emptyList(), // ordered category names
+    val widgetCategories: List<String> = emptyList(), // categories shown in widget (empty = all)
+    val widgetShowInbox: Boolean = false, // show recent inbox lines under each widget row
+) {
+    /** Connection ids of [category] in the user's saved order, with [all] appended/kept. */
+    fun orderedTiles(category: String, all: List<String>): List<String> {
+        val saved = tileOrder[category] ?: return all
+        val kept = saved.filter { it in all }
+        return kept + all.filter { it !in kept }
+    }
+
+    fun spanOf(connectionId: String): Int = (tileSpan[connectionId] ?: 1).coerceIn(1, 2)
+}
 
 /** Appearance is read high in the tree and provided to the whole UI. */
 val LocalAppearance = staticCompositionLocalOf { Appearance() }
@@ -44,9 +58,18 @@ class AppearanceStore(context: Context) {
 
     fun load(): Appearance {
         val accentHex = prefs.getString(KEY_ACCENT, null)
-        val icons = prefs.all.entries
+        val all = prefs.all
+        val icons = all.entries
             .filter { it.key.startsWith(ICON_PREFIX) && it.value is String }
             .associate { it.key.removePrefix(ICON_PREFIX) to it.value as String }
+        val order = all.entries
+            .filter { it.key.startsWith(ORDER_PREFIX) && it.value is String }
+            .associate { e ->
+                e.key.removePrefix(ORDER_PREFIX) to (e.value as String).split(',').filter { it.isNotBlank() }
+            }
+        val spans = all.entries
+            .filter { it.key.startsWith(SPAN_PREFIX) && it.value is Int }
+            .associate { it.key.removePrefix(SPAN_PREFIX) to it.value as Int }
         return Appearance(
             accent = accentHex?.let { parseColor(it) } ?: OdsColors.Crimson,
             accentHex = accentHex ?: "#D42B2B",
@@ -55,6 +78,11 @@ class AppearanceStore(context: Context) {
             overlayAlpha = prefs.getFloat(KEY_OVERLAY, 0.55f),
             logoPath = prefs.getString(KEY_LOGO, null),
             iconPaths = icons,
+            tileOrder = order,
+            tileSpan = spans,
+            categoryOrder = prefs.getString(KEY_CAT_ORDER, null)?.split(',')?.filter { it.isNotBlank() } ?: emptyList(),
+            widgetCategories = prefs.getString(KEY_WIDGET_CATS, null)?.split(',')?.filter { it.isNotBlank() } ?: emptyList(),
+            widgetShowInbox = prefs.getBoolean(KEY_WIDGET_INBOX, false),
         )
     }
 
@@ -65,6 +93,30 @@ class AppearanceStore(context: Context) {
     fun setLogo(path: String?) = prefs.edit().putString(KEY_LOGO, path).apply()
     fun setIcon(connectionId: String, path: String?) =
         prefs.edit().apply { if (path == null) remove(ICON_PREFIX + connectionId) else putString(ICON_PREFIX + connectionId, path) }.apply()
+
+    fun setTileOrder(category: String, ids: List<String>) =
+        prefs.edit().putString(ORDER_PREFIX + category, ids.joinToString(",")).apply()
+
+    fun setTileSpan(connectionId: String, span: Int) =
+        prefs.edit().putInt(SPAN_PREFIX + connectionId, span.coerceIn(1, 2)).apply()
+
+    fun setCategoryOrder(names: List<String>) =
+        prefs.edit().putString(KEY_CAT_ORDER, names.joinToString(",")).apply()
+
+    fun setWidgetCategories(names: List<String>) =
+        prefs.edit().putString(KEY_WIDGET_CATS, names.joinToString(",")).apply()
+
+    fun setWidgetShowInbox(enabled: Boolean) =
+        prefs.edit().putBoolean(KEY_WIDGET_INBOX, enabled).apply()
+
+    /** Clear only the arrange (order + span) customisation. */
+    fun resetLayout() {
+        prefs.edit().apply {
+            prefs.all.keys
+                .filter { it.startsWith(ORDER_PREFIX) || it.startsWith(SPAN_PREFIX) || it == KEY_CAT_ORDER }
+                .forEach { remove(it) }
+        }.apply()
+    }
 
     fun resetAll() {
         File(app.filesDir, IMG_DIR).deleteRecursively()
@@ -94,6 +146,11 @@ class AppearanceStore(context: Context) {
         private const val KEY_OVERLAY = "overlay_alpha"
         private const val KEY_LOGO = "logo_path"
         private const val ICON_PREFIX = "icon_"
+        private const val ORDER_PREFIX = "order_"
+        private const val SPAN_PREFIX = "span_"
+        private const val KEY_CAT_ORDER = "cat_order"
+        private const val KEY_WIDGET_CATS = "widget_cats"
+        private const val KEY_WIDGET_INBOX = "widget_inbox"
         private const val IMG_DIR = "appearance"
     }
 }

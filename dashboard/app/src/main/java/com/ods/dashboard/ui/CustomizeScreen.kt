@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -45,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ods.dashboard.data.AppearanceStore
 import com.ods.dashboard.data.LocalAppearance
+import com.ods.dashboard.model.Category
 import com.ods.dashboard.model.Connections
 import com.ods.dashboard.ui.theme.OdsColors
 import com.ods.dashboard.ui.theme.odsTile
@@ -78,6 +81,19 @@ fun CustomizeScreen(
     val appearance = LocalAppearance.current
     var accentText by remember { mutableStateOf(appearance.accentHex) }
     var pending by remember { mutableStateOf<PickTarget?>(null) }
+    var catOrder by remember {
+        mutableStateOf(
+            appearance.categoryOrder.mapNotNull { n -> Category.entries.firstOrNull { it.name == n } } +
+                Category.entries.filter { c -> appearance.categoryOrder.none { it == c.name } },
+        )
+    }
+    var widgetCats by remember {
+        mutableStateOf(
+            if (appearance.widgetCategories.isEmpty()) Category.entries.map { it.name }.toSet()
+            else appearance.widgetCategories.toSet(),
+        )
+    }
+    var widgetInbox by remember { mutableStateOf(appearance.widgetShowInbox) }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         val target = pending
@@ -203,7 +219,75 @@ fun CustomizeScreen(
             }
         }
 
+        // --- Category order ---
+        Section("CATEGORY ORDER") {
+            catOrder.forEachIndexed { i, cat ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(cat.title, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                    IconButton(
+                        enabled = i > 0,
+                        onClick = {
+                            catOrder = catOrder.toMutableList().apply { add(i - 1, removeAt(i)) }
+                            store.setCategoryOrder(catOrder.map { it.name }); onChanged()
+                        },
+                    ) { Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Up", tint = OdsColors.Silver) }
+                    IconButton(
+                        enabled = i < catOrder.size - 1,
+                        onClick = {
+                            catOrder = catOrder.toMutableList().apply { add(i + 1, removeAt(i)) }
+                            store.setCategoryOrder(catOrder.map { it.name }); onChanged()
+                        },
+                    ) { Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Down", tint = OdsColors.Silver) }
+                }
+            }
+            Text(
+                "Drag tiles within a category from its screen (the move handle, top-right).",
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
+
+        // --- Widget ---
+        Section("WIDGET") {
+            Text("Categories shown on the home-screen widget", style = MaterialTheme.typography.labelMedium)
+            Category.entries.forEach { cat ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(cat.title, style = MaterialTheme.typography.bodyMedium)
+                    Switch(
+                        checked = cat.name in widgetCats,
+                        onCheckedChange = { on ->
+                            widgetCats = if (on) widgetCats + cat.name else widgetCats - cat.name
+                            store.setWidgetCategories(widgetCats.toList()); onChanged()
+                        },
+                        colors = SwitchDefaults.colors(checkedTrackColor = OdsColors.Crimson),
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Show recent inbox lines", style = MaterialTheme.typography.bodyMedium)
+                Switch(
+                    checked = widgetInbox,
+                    onCheckedChange = { widgetInbox = it; store.setWidgetShowInbox(it); onChanged() },
+                    colors = SwitchDefaults.colors(checkedTrackColor = OdsColors.Crimson),
+                )
+            }
+        }
+
         Spacer(Modifier.height(4.dp))
+        OutlinedButton(onClick = { store.resetLayout(); onChanged() }, modifier = Modifier.fillMaxWidth()) {
+            Text("Reset tile layout")
+        }
         OutlinedButton(onClick = { store.resetAll(); accentText = "#D42B2B"; onChanged() }, modifier = Modifier.fillMaxWidth()) {
             Text("Reset all customisation")
         }

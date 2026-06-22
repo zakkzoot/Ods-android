@@ -14,6 +14,7 @@ coroutines = "1.9.0"
 securityCrypto = "1.1.0-alpha06"
 appauth = "0.11.1"
 javamail = "1.6.7"
+reorderable = "2.4.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -37,6 +38,7 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 appauth = { group = "net.openid", name = "appauth", version.ref = "appauth" }
 javamail-impl = { group = "com.sun.mail", name = "android-mail", version.ref = "javamail" }
 javamail-activation = { group = "com.sun.mail", name = "android-activation", version.ref = "javamail" }
+reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.ref = "reorderable" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
