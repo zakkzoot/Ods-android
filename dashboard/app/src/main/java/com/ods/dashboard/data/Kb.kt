@@ -1,7 +1,9 @@
 package com.ods.dashboard.data
 
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
@@ -20,12 +22,24 @@ data class KbEntry(
 
 data class KbCategory(val category: String, val count: Int)
 
+/** A client/tenant the KB entries belong to — used by the editor's client picker. */
+data class KbClientRef(
+    val id: String,
+    val name: String,
+    val emoji: String?,
+    val color: String?,
+)
+
 /** Result of a KB fetch. [error] is non-null on failure ("no_key" when unconfigured). */
 data class KbData(
     val categories: List<KbCategory> = emptyList(),
     val entries: List<KbEntry> = emptyList(),
+    val clients: List<KbClientRef> = emptyList(),
     val error: String? = null,
 )
+
+/** Result of a write (create/update/archive/restore). */
+data class KbWriteResult(val ok: Boolean, val error: String? = null)
 
 private fun JSONObject.strOrNull(key: String): String? =
     if (isNull(key)) null else optString(key).takeIf { it.isNotBlank() }
@@ -77,8 +91,47 @@ class KbClient(private val config: SecureConfig) {
                         )
                     }
                 } ?: emptyList()
-                KbData(categories = cats, entries = entries)
+                val clients = o.optJSONArray("clients")?.let { arr ->
+                    (0 until arr.length()).mapNotNull { i ->
+                        val c = arr.optJSONObject(i) ?: return@mapNotNull null
+                        val id = c.strOrNull("id") ?: return@mapNotNull null
+                        KbClientRef(id, c.optString("name").ifBlank { id.take(8) }, c.strOrNull("emoji"), c.strOrNull("color"))
+                    }
+                } ?: emptyList()
+                KbData(categories = cats, entries = entries, clients = clients)
             }
         }.getOrElse { KbData(error = it.message ?: "error") }
+    }
+
+    /** True when an admin token is configured, i.e. editing is possible. */
+    fun canEdit(): Boolean = config.get(SecureConfig.SUPABASE_ADMIN_TOKEN) != null
+
+    fun create(clientId: String, fields: Map<String, String?>): KbWriteResult =
+        write(JSONObject(fields.filterValues { !it.isNullOrBlank() }).put("action", "create").put("client_id", clientId))
+
+    fun update(id: String, fields: Map<String, String?>): KbWriteResult =
+        write(JSONObject(fields.filterValues { it != null }).put("action", "update").put("id", id))
+
+    fun archive(id: String): KbWriteResult = write(JSONObject().put("action", "archive").put("id", id))
+
+    fun restore(id: String): KbWriteResult = write(JSONObject().put("action", "restore").put("id", id))
+
+    private fun write(payload: JSONObject): KbWriteResult {
+        val base = (config.get(SecureConfig.SUPABASE_URL) ?: Defaults.SUPABASE_URL).trimEnd('/')
+        val key = config.get(SecureConfig.SUPABASE_ANON_KEY) ?: return KbWriteResult(false, "no_key")
+        val admin = config.get(SecureConfig.SUPABASE_ADMIN_TOKEN) ?: return KbWriteResult(false, "no_admin_token")
+        val req = Request.Builder()
+            .url("$base/functions/v1/kb-write")
+            .header("apikey", key)
+            .header("Authorization", "Bearer $key")
+            .header("x-admin-token", admin)
+            .post(payload.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+        return runCatching {
+            http.newCall(req).execute().use { resp ->
+                if (resp.code in 200..299) KbWriteResult(true)
+                else KbWriteResult(false, "http ${resp.code}: ${resp.body?.string().orEmpty().take(200)}")
+            }
+        }.getOrElse { KbWriteResult(false, it.message ?: "error") }
     }
 }

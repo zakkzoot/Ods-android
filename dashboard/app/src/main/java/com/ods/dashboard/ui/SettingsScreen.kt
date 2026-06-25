@@ -67,6 +67,7 @@ fun SettingsScreen(
     var vercel by remember { mutableStateOf(config.get(SecureConfig.VERCEL_TOKEN).orEmpty()) }
     var github by remember { mutableStateOf(config.get(SecureConfig.GITHUB_PAT).orEmpty()) }
     var supaKey by remember { mutableStateOf(config.get(SecureConfig.SUPABASE_ANON_KEY).orEmpty()) }
+    var supaAdmin by remember { mutableStateOf(config.get(SecureConfig.SUPABASE_ADMIN_TOKEN).orEmpty()) }
     var meta by remember { mutableStateOf(config.get(SecureConfig.META_PAGE_TOKEN).orEmpty()) }
     var telegram by remember { mutableStateOf(config.get(SecureConfig.TELEGRAM_BOT_TOKEN).orEmpty()) }
     var clientId by remember { mutableStateOf(config.get(SecureConfig.GOOGLE_CLIENT_ID).orEmpty()) }
@@ -89,6 +90,7 @@ fun SettingsScreen(
                 vercel = config.get(SecureConfig.VERCEL_TOKEN).orEmpty()
                 github = config.get(SecureConfig.GITHUB_PAT).orEmpty()
                 supaKey = config.get(SecureConfig.SUPABASE_ANON_KEY).orEmpty()
+                supaAdmin = config.get(SecureConfig.SUPABASE_ADMIN_TOKEN).orEmpty()
                 meta = config.get(SecureConfig.META_PAGE_TOKEN).orEmpty()
                 telegram = config.get(SecureConfig.TELEGRAM_BOT_TOKEN).orEmpty()
                 clientId = config.get(SecureConfig.GOOGLE_CLIENT_ID).orEmpty()
@@ -175,6 +177,7 @@ fun SettingsScreen(
         Secret("Vercel API token", vercel) { vercel = it }
         Secret("GitHub personal access token", github) { github = it }
         Secret("Supabase anon key (optional — health works without it)", supaKey) { supaKey = it }
+        Secret("Supabase KB admin token (enables editing the knowledge base)", supaAdmin) { supaAdmin = it }
         Secret("Meta page access token (Facebook / Instagram)", meta) { meta = it }
         Secret("Telegram bot token (channel members / message bot)", telegram) { telegram = it }
 
@@ -238,6 +241,7 @@ fun SettingsScreen(
                 config.set(SecureConfig.VERCEL_TOKEN, vercel.trim())
                 config.set(SecureConfig.GITHUB_PAT, github.trim())
                 config.set(SecureConfig.SUPABASE_ANON_KEY, supaKey.trim())
+                config.set(SecureConfig.SUPABASE_ADMIN_TOKEN, supaAdmin.trim())
                 config.set(SecureConfig.META_PAGE_TOKEN, meta.trim())
                 config.set(SecureConfig.TELEGRAM_BOT_TOKEN, telegram.trim())
                 config.set(SecureConfig.GOOGLE_CLIENT_ID, clientId.trim())
