@@ -46,9 +46,23 @@ class AssistClient(private val config: SecureConfig) {
     val configured: Boolean get() = consoleUrl != null && authUrl != null && anonKey != null
 
     fun saveEndpoints(consoleUrl: String, authUrl: String, anonKey: String) {
-        config.set(KEY_CONSOLE_URL, consoleUrl.trim().ifBlank { null })
-        config.set(KEY_AUTH_URL, authUrl.trim().ifBlank { null })
-        config.set(KEY_ANON, anonKey.trim().ifBlank { null })
+        config.set(KEY_CONSOLE_URL, consoleUrl.filterNot { it.isWhitespace() }.ifBlank { null })
+        config.set(KEY_AUTH_URL, authUrl.filterNot { it.isWhitespace() }.ifBlank { null })
+        config.set(KEY_ANON, sanitizeKey(anonKey).ifBlank { null })
+    }
+
+    /**
+     * Keys and URLs arrive by paste, and paste accidents are the #1 sign-in failure: a trailing
+     * newline makes the value illegal as an HTTP header (okhttp: "Unexpected char 0x0a"), and a
+     * double-tap paste doubles the key. Strip ALL whitespace, then collapse an exact double-paste
+     * (first half == second half) back to a single copy. Deterministic; never alters a valid key.
+     */
+    private fun sanitizeKey(raw: String): String {
+        val k = raw.filterNot { it.isWhitespace() }
+        val half = k.length / 2
+        return if (k.length % 2 == 0 && half > 0 && k.substring(0, half) == k.substring(half)) {
+            k.substring(0, half)
+        } else k
     }
 
     fun signOut() {
