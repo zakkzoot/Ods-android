@@ -28,6 +28,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.DragIndicator
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,6 +77,7 @@ fun DashboardScreen(
     onOpenSettings: () -> Unit = {},
     onOpenVault: () -> Unit = {},
     onOpenAssist: () -> Unit = {},
+    onOpenAvatar: () -> Unit = {},
 ) {
     val statuses by repository.statuses.collectAsState(initial = emptyMap())
     var selected by remember {
@@ -101,7 +103,14 @@ fun DashboardScreen(
                 onArrange = { arranging = true },
                 onTap = { c -> expandedId = toggle(expandedId, c, onOpen) },
             )
-            else -> HomeCategories(statuses = statuses, onOpenSettings = onOpenSettings, onOpenVault = onOpenVault, onOpenAssist = onOpenAssist, onOpen = { selected = it })
+            else -> HomeCategories(
+                statuses = statuses,
+                onOpenSettings = onOpenSettings,
+                onOpenVault = onOpenVault,
+                onOpenAssist = onOpenAssist,
+                onOpenAvatar = onOpenAvatar,
+                onOpen = { selected = it },
+            )
         }
     }
 }
@@ -154,6 +163,7 @@ private fun HomeCategories(
     onOpenSettings: () -> Unit,
     onOpenVault: () -> Unit,
     onOpenAssist: () -> Unit,
+    onOpenAvatar: () -> Unit,
     onOpen: (Category) -> Unit,
 ) {
     Column(
@@ -164,7 +174,7 @@ private fun HomeCategories(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Header(onOpenSettings, onOpenVault, onOpenAssist)
+        Header(onOpenSettings, onOpenVault, onOpenAssist, onOpenAvatar)
         orderedCategories(LocalAppearance.current.categoryOrder).forEach { cat ->
             CategoryCard(category = cat, rollup = rollupCategory(cat, statuses), onClick = { onOpen(cat) })
         }
@@ -173,7 +183,12 @@ private fun HomeCategories(
 }
 
 @Composable
-private fun Header(onOpenSettings: () -> Unit, onOpenVault: () -> Unit, onOpenAssist: () -> Unit) {
+private fun Header(
+    onOpenSettings: () -> Unit,
+    onOpenVault: () -> Unit,
+    onOpenAssist: () -> Unit,
+    onOpenAvatar: () -> Unit,
+) {
     val logo = rememberFileBitmap(LocalAppearance.current.logoPath)
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (logo != null) {
@@ -185,6 +200,9 @@ private fun Header(onOpenSettings: () -> Unit, onOpenVault: () -> Unit, onOpenAs
         Column(modifier = Modifier.weight(1f)) {
             Text("OUTLINED DESIGN", style = MaterialTheme.typography.titleLarge)
             Text("CONNECTIONS", style = MaterialTheme.typography.labelLarge)
+        }
+        IconButton(onClick = onOpenAvatar) {
+            Icon(Icons.Filled.Face, contentDescription = "ODS Assist avatar", tint = OdsColors.Crimson)
         }
         IconButton(onClick = onOpenAssist) {
             Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = "ODS Assist", tint = OdsColors.Crimson)
