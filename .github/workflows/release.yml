@@ -13,16 +13,47 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release version tag (e.g. v1.0.0)'
+        # Deliberately no default. A pre-filled version means one stray click
+        # republishes over that release instead of cutting a new one — which is
+        # exactly how the v1.0.0 release ended up holding a later build.
+        description: 'New release version tag, e.g. v2.3.0 (must not already exist)'
         required: true
-        default: 'v1.0.0'
 
 permissions:
   contents: write
 
 jobs:
+  guard:
+    name: Check the version is new
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject a version that already exists
+        # Only meaningful for a manual run: a tag push is by definition its own tag.
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG='${{ github.event.inputs.tag }}'
+          if [ -z "$TAG" ]; then
+            echo "::error::No version tag given."
+            exit 1
+          fi
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::'$TAG' is not a vMAJOR.MINOR.PATCH tag."
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG already exists — publishing would overwrite the $TAG release and its APKs. Pick a new version."
+            exit 1
+          fi
+          echo "$TAG is new — proceeding."
+
   build:
     name: Build ${{ matrix.module }}
+    needs: guard
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
