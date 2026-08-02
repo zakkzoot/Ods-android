@@ -50,8 +50,15 @@ fine for installing on your own device; Play Protect may show a one-time
 
 ### ODS Dashboard (app + widget)
 1. Open the **ODS Dashboard** app once so it can initialize.
-2. Long-press the home screen → **Widgets** → **ODS** → drag the dashboard
-   widget out and resize it.
+2. Long-press the home screen → **Widgets** → **ODS Dashboard**. There are two:
+   - **ODS Connections** — the live status widget (categories, dots, badges).
+   - **ODS Launcher** — a 4 × 3 grid of shortcuts (Aether · Link · Recon · Assist /
+     Leads · Socials · AANi · 3D Print / Home · Tools · Docs · Vercel). Each cell is a
+     logo with its word underneath and opens its destination on one tap.
+
+   Drag either out and resize it. To repoint a launcher cell or swap its logo, use
+   **Settings → Customise → Edit launcher grid** in the app; placed widgets redraw
+   straight away.
 3. **Gmail unread counts** need a Google OAuth client ID — follow
    [`dashboard/SETUP_GOOGLE_OAUTH.md`](dashboard/SETUP_GOOGLE_OAUTH.md). The app
    runs without it; that step only enables the Gmail tile.

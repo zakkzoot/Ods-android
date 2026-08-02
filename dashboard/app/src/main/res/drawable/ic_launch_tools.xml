@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tools — the ODS Link tools hub: a control panel of sliders, one knob crimson. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <path
+        android:pathData="M7,13 H41 M7,24 H41 M7,35 H41"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round" />
+
+    <path
+        android:pathData="M26,13 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0"
+        android:fillColor="#0E0E10"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2.2" />
+    <path
+        android:pathData="M30,35 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0"
+        android:fillColor="#0E0E10"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2.2" />
+    <path
+        android:pathData="M12,24 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0"
+        android:fillColor="#D42B2B" />
+</vector>

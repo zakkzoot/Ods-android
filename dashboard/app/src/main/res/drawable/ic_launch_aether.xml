@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Aether — predictive layer: three orbits around a point, one crimson node forecast
+     out on the far orbit. Silver linework, single crimson accent (see ICON_PROMPTS.md). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <group android:pivotX="24" android:pivotY="24" android:rotation="0">
+        <path
+            android:pathData="M5,24 a19,7 0 1,0 38,0 a19,7 0 1,0 -38,0"
+            android:fillColor="#00000000"
+            android:strokeColor="#C9CDD4"
+            android:strokeWidth="2" />
+    </group>
+    <group android:pivotX="24" android:pivotY="24" android:rotation="60">
+        <path
+            android:pathData="M5,24 a19,7 0 1,0 38,0 a19,7 0 1,0 -38,0"
+            android:fillColor="#00000000"
+            android:strokeColor="#C9CDD4"
+            android:strokeWidth="2" />
+    </group>
+    <group android:pivotX="24" android:pivotY="24" android:rotation="120">
+        <path
+            android:pathData="M5,24 a19,7 0 1,0 38,0 a19,7 0 1,0 -38,0"
+            android:fillColor="#00000000"
+            android:strokeColor="#C9CDD4"
+            android:strokeWidth="2" />
+    </group>
+
+    <path
+        android:pathData="M21.5,24 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0"
+        android:fillColor="#C9CDD4" />
+    <path
+        android:pathData="M40,24 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0"
+        android:fillColor="#D42B2B" />
+</vector>

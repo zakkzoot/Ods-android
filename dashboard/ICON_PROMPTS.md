@@ -138,6 +138,50 @@ info@) are fully bespoke.
 
 ---
 
+## Launcher grid marks (12)
+
+The **ODS Launcher** widget ships bundled vector glyphs for all twelve cells (see
+`res/drawable/ic_launch_*.xml`). Use these subjects to generate replacement art, then set
+it per cell in **Settings → Customise → Edit launcher grid**. Aether, Link, Recon and
+Assist reuse the connection subjects above; the rest are new.
+
+The label is already printed under each icon, so the mark must carry **no lettering** —
+it has to read as a silhouette at roughly 34 dp.
+
+**leads (ODS Leads / lead-gen)** — subject:
+> a wide funnel narrowing to a short stem, drawn as a single silver outline, the top
+> intake rim thickened in crimson.
+
+**socials (the ODS Link socials queue)** — subject:
+> three circular nodes wired into a triangle, the top broadcast node filled crimson and
+> the two lower nodes silver outlines.
+
+**aani** — subject:
+> two interlocking rings side by side, the left ring silver and the right ring crimson —
+> a paired-account motif.
+
+**print3d (ODS-3Dprint)** — subject:
+> an isometric cube drawn in silver wireframe with its three visible faces implied by
+> internal edges, the two base edges thickened in crimson like a freshly laid first layer.
+
+**home (outlined-design.com)** — subject:
+> the ODS wireframe cube emblem, silver, nothing else. (The bundled default is the real
+> ODS mark — replace only with the mark itself.)
+
+**tools (ODS Link tools hub)** — subject:
+> three stacked horizontal slider rails with a round knob on each, the middle knob filled
+> crimson and the outer two silver outlines.
+
+**docs (ODS TheView)** — subject:
+> a document page with a folded top-right corner and two short text rules, overlaid at the
+> lower right by a crimson magnifier lens.
+
+**vercel** — subject:
+> a single solid upward-pointing equilateral triangle in silver, with a thin crimson
+> underline beneath it. (Or use the official Vercel triangle.)
+
+---
+
 ## Optional: full monochrome variant
 If you prefer pure monochrome (no crimson), drop the crimson clause from **[STYLE]** and
 render all-silver; then let the app's accent colour provide the only colour. Keep the set

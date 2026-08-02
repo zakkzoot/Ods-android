@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Docs — ODS TheView, the GitHub vault viewer: a document read through a crimson lens. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <path
+        android:pathData="M11,5 H29 L38,14 V43 H11 Z"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2.4"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M29,5 V14 H38"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2.2"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M16,20 H28 M16,26 H24"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <path
+        android:pathData="M22,32 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0"
+        android:fillColor="#00000000"
+        android:strokeColor="#D42B2B"
+        android:strokeWidth="2.6" />
+    <path
+        android:pathData="M34,37 L40,43"
+        android:fillColor="#00000000"
+        android:strokeColor="#D42B2B"
+        android:strokeWidth="2.6"
+        android:strokeLineCap="round" />
+</vector>

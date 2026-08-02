@@ -36,6 +36,52 @@ For the full list of every link, API and key, see
 
 ---
 
+## The launcher grid (second widget)
+
+Alongside the status widget the app ships **ODS Launcher** — a 4 × 3 grid of plain
+shortcuts, one logo per cell with its word underneath. No status, no drill-down: a tap
+opens the destination straight away.
+
+| | | | |
+| --- | --- | --- | --- |
+| **Aether** | **Link** | **Recon** | **Assist** |
+| **Leads** | **Socials** | **AANi** | **3D Print** |
+| **Home** | **Tools** | **Docs** | **Vercel** |
+
+Default destinations:
+
+| Cell | Opens |
+| --- | --- |
+| Aether | `https://ods-aether.vercel.app` |
+| Link | `https://ods-link.com` |
+| Recon | `https://ods-recon.com` |
+| Assist | `https://ods-assistant.vercel.app` |
+| Leads | `https://lead-gen-beryl-one.vercel.app` |
+| Socials | `https://ods-link.com/dashboard/marketing` — the socials tab |
+| AANi | `https://ods-recon.com/aani-app.html` — the page the Telegram mini app serves |
+| 3D Print | `https://ods-3dprint-web.vercel.app` |
+| Home | `https://www.outlined-design.com` |
+| Tools | `https://ods-link.com/tools` |
+| Docs | `https://ods-the-view.vercel.app` — ODS TheView, the GitHub vault viewer |
+| Vercel | `https://vercel.com/zakkgray1-3026s-projects` |
+
+Place it with **long-press home screen → Widgets → ODS Dashboard → ODS Launcher**. It
+asks the launcher for a 4 × 3 footprint and resizes from there.
+
+Every cell is editable in-app: **Settings → Customise → Edit launcher grid**. Point a cell
+somewhere else, or replace its mark with your own image; placed widgets redraw
+immediately, so nothing has to be re-pinned. "Reset launcher to defaults" restores the
+table above.
+
+The bundled marks are ODS-styled vector glyphs following
+[`ICON_PROMPTS.md`](ICON_PROMPTS.md) — the ODS cube is the real mark on **Home**, and
+**Vercel** is the platform triangle. The product marks (Aether, Link, Recon, Assist) are
+distinct glyphs rather than the sub-brand lockups, because those lockups are all the same
+cube over a wordmark and would be indistinguishable at 34 dp with the word already
+printed underneath. Swap in generated art any time via the launcher screen.
+
+---
+
 ## Architecture
 
 | Layer | Where |
@@ -50,6 +96,9 @@ For the full list of every link, API and key, see
 | Full-screen Compose dashboard (category cards + drill-down) | `ui/DashboardScreen.kt`, `ui/Tiles.kt` |
 | Token entry + env import | `ui/SettingsScreen.kt` |
 | Glance home-screen widget (resizable to a full page) | `widget/OdsWidget.kt` |
+| Launcher grid registry + per-slot overrides | `launcher/LauncherShortcuts.kt`, `launcher/LauncherStore.kt` |
+| Launcher grid widget + tap trampoline | `widget/OdsLauncherWidget.kt`, `launcher/LaunchActivity.kt` |
+| Launcher grid editor (links + logos) | `ui/LauncherScreen.kt` |
 | Brand theme (palette, fonts, elevation) | `ui/theme/` |
 
 Status is cached in DataStore so both surfaces render instantly and never block on

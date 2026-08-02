@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Assist — the conversational layer: a chat bubble holding a crimson spark. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <path
+        android:pathData="M9,8 H39 A5,5 0 0 1 44,13 V29 A5,5 0 0 1 39,34 H22 L14,41 V34 H9 A5,5 0 0 1 4,29 V13 A5,5 0 0 1 9,8 Z"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2.4"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M24,12 L26.5,18.5 L33,21 L26.5,23.5 L24,30 L21.5,23.5 L15,21 L21.5,18.5 Z"
+        android:fillColor="#D42B2B" />
+</vector>
