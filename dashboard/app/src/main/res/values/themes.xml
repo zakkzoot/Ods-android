@@ -6,4 +6,13 @@
         <item name="android:navigationBarColor">@color/charcoal</item>
         <item name="android:windowBackground">@color/charcoal</item>
     </style>
+
+    <!-- No-UI theme for the launcher-grid trampoline: it starts a browser and finishes,
+         so it must never flash a window of its own. -->
+    <style name="Theme.OdsDashboard.Invisible" parent="android:Theme.Translucent.NoTitleBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoDisplay">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
 </resources>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Recon — past / historical intel: a radar sweep with one crimson blip. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <path
+        android:pathData="M7,24 a17,17 0 1,0 34,0 a17,17 0 1,0 -34,0"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2.4" />
+    <path
+        android:pathData="M15,24 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="1.8" />
+    <path
+        android:pathData="M24,24 L36,12"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M30,17 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0"
+        android:fillColor="#D42B2B" />
+</vector>

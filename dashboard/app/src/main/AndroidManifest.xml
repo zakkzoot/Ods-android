@@ -36,6 +36,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Invisible trampoline: launcher-grid taps land here and are forwarded to the
+             browser. Not exported — it is only ever reached through a PendingIntent this
+             app created. -->
+        <activity
+            android:name=".launcher.LaunchActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.OdsDashboard.Invisible" />
+
         <receiver
             android:name=".widget.OdsWidgetReceiver"
             android:exported="true"
@@ -46,6 +57,18 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/ods_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.OdsLauncherWidgetReceiver"
+            android:exported="true"
+            android:label="@string/launcher_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/ods_launcher_widget_info" />
         </receiver>
     </application>
 </manifest>

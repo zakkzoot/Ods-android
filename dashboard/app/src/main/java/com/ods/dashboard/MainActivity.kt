@@ -31,6 +31,7 @@ import com.ods.dashboard.model.Category
 import com.ods.dashboard.model.Connection
 import com.ods.dashboard.ui.CustomizeScreen
 import com.ods.dashboard.ui.DashboardScreen
+import com.ods.dashboard.ui.LauncherScreen
 import com.ods.dashboard.ui.SettingsScreen
 import com.ods.dashboard.ui.AssistScreen
 import com.ods.dashboard.ui.AvatarWebScreen
@@ -40,7 +41,7 @@ import com.ods.dashboard.ui.theme.OdsTheme
 import com.ods.dashboard.work.StatusRefreshWorker
 import kotlinx.coroutines.launch
 
-private enum class Screen { DASHBOARD, SETTINGS, CUSTOMIZE, VAULT, ASSIST, AVATAR }
+private enum class Screen { DASHBOARD, SETTINGS, CUSTOMIZE, LAUNCHER, VAULT, ASSIST, AVATAR }
 
 /** Shown if app startup fails, so we get a readable message instead of a blank screen. */
 @Composable
@@ -109,7 +110,12 @@ class MainActivity : ComponentActivity() {
                                 store = appearanceStore,
                                 onBack = { screen = Screen.SETTINGS },
                                 onChanged = { appearance = runCatching { appearanceStore.load() }.getOrNull() },
+                                onOpenLauncher = { screen = Screen.LAUNCHER },
                             )
+                        }
+                        Screen.LAUNCHER -> {
+                            BackHandler { screen = Screen.CUSTOMIZE }
+                            LauncherScreen(onBack = { screen = Screen.CUSTOMIZE })
                         }
                         Screen.VAULT -> {
                             BackHandler { screen = Screen.DASHBOARD }

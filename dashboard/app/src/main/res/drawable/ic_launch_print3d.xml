@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 3D Print — an isometric printed cube, the freshly laid base layers crimson. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <path
+        android:pathData="M24,5 L41,14.5 V33.5 L24,43 L7,33.5 V14.5 Z"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2.4"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M24,24 L41,14.5 M24,24 V43 M24,24 L7,14.5"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M7,33.5 L24,43 L41,33.5"
+        android:fillColor="#00000000"
+        android:strokeColor="#D42B2B"
+        android:strokeWidth="2.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

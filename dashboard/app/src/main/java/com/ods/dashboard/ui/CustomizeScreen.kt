@@ -77,6 +77,7 @@ fun CustomizeScreen(
     store: AppearanceStore,
     onBack: () -> Unit,
     onChanged: () -> Unit,
+    onOpenLauncher: () -> Unit,
 ) {
     val appearance = LocalAppearance.current
     var accentText by remember { mutableStateOf(appearance.accentHex) }
@@ -282,6 +283,20 @@ fun CustomizeScreen(
                     colors = SwitchDefaults.colors(checkedTrackColor = OdsColors.Crimson),
                 )
             }
+        }
+
+        // --- Launcher grid (the second, links-only widget) ---
+        Section("LAUNCHER GRID") {
+            Text(
+                "The 4×3 shortcut widget — Aether, Link, Recon, Assist, Leads, Socials, " +
+                    "AANi, 3D Print, Home, Tools, Docs, Vercel. Swap any logo or repoint " +
+                    "any tile.",
+                style = MaterialTheme.typography.labelMedium,
+            )
+            Button(
+                onClick = onOpenLauncher,
+                colors = ButtonDefaults.buttonColors(containerColor = OdsColors.Crimson, contentColor = OdsColors.Silver),
+            ) { Text("Edit launcher grid") }
         }
 
         Spacer(Modifier.height(4.dp))

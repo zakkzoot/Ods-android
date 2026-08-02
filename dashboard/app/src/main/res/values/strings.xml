@@ -3,4 +3,6 @@
     <string name="app_name">ODS Dashboard</string>
     <string name="widget_label">ODS Connections</string>
     <string name="widget_description">Live status of every ODS connection — socials, systems and accounts.</string>
+    <string name="launcher_widget_label">ODS Launcher</string>
+    <string name="launcher_widget_description">A 4×3 grid of ODS shortcuts — Aether, Link, Recon, Assist, Leads, Socials, AANi, 3D Print, Home, Tools, Docs and Vercel.</string>
 </resources>

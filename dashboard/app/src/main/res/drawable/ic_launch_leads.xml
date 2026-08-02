@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Leads — the lead-gen funnel; the intake rim is the crimson accent. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <path
+        android:pathData="M7,9 H41 L27,26 V40 L21,44 V26 Z"
+        android:fillColor="#00000000"
+        android:strokeColor="#C9CDD4"
+        android:strokeWidth="2.4"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M7,9 H41"
+        android:fillColor="#00000000"
+        android:strokeColor="#D42B2B"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round" />
+</vector>
